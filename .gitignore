@@ -1,24 +1,124 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-node_modules
-dist
-dist-ssr
-*.local
+### Maven ###
+.mvn/
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
 .idea
+*.iws
+*.iml
+*.ipr
+out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
+### Logs ###
+*.log
+logs/
+*.log.*
+
+### Spring Boot ###
+spring-boot-*.log
+application-*.yml
+!application.yml
+!application.properties
+
+### Sistema Operativo ###
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.directory
+.Trash-*
+
+### Archivos temporales y de compilación ###
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+### Base de datos ###
+*.db
+*.sqlite
+*.sqlite3
+*.h2.db
+*.mv.db
+*.trace.db
+
+### Archivos de configuración sensibles ###
+*.key
+*.pem
+*.p12
+*.jks
+application-local.yml
+application-local.properties
+secrets/
+.env
+.env.local
+
+### Archivos de pruebas ###
+test-output/
+test-results/
+.tmp/
