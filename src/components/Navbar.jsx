@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAuthToken, setAuthToken, categoryAPI } from '../services/api';
+import { getAuthToken, categoryAPI } from '../services/api';
+import { useCart } from '../contexts/CartContext';
+import { useSearch } from '../contexts/SearchContext';
+import CartDropdown from './CartDropdown';
+import ProfileDropdown from './ProfileDropdown';
 
 function Navbar() {
+  const { searchQuery, setSearchQuery } = useSearch();
   const [token, setToken] = useState(() => getAuthToken());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const { getTotalItems } = useCart();
 
   useEffect(() => {
     const checkToken = () => {
@@ -31,10 +39,16 @@ function Navbar() {
     }
   };
 
-  const handleLogout = () => {
-    setAuthToken(null);
-    setToken(null);
-    navigate('/login');
+  // Extract user email from token (simple implementation)
+  const getUserEmail = () => {
+    try {
+      const token = getAuthToken();
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub || null;
+    } catch {
+      return null;
+    }
   };
 
   return (
@@ -46,12 +60,6 @@ function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center flex-1 justify-center max-w-2xl mx-4 gap-6">
-            <Link
-              to="/productos"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Productos
-            </Link>
             {categories.length > 0 && categories.map((category) => (
               <Link
                 key={category.id}
@@ -63,13 +71,73 @@ function Navbar() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 ">
+          <div className="flex items-center gap-2">
+            {/* Search Icon */}
+            <button
+              className="hidden md:flex p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Buscar productos"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </button>
+
+            {/* Cart Button */}
+            <button
+              onClick={() => setIsCartOpen(!isCartOpen)}
+              className="relative p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Carrito de compras"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </button>
+
+            {/* User Profile or Auth Buttons */}
             {token ? (
               <button
-                onClick={handleLogout}
-                className="btn btn-secondary btn-sm"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Perfil de usuario"
               >
-                Cerrar Sesión
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
               </button>
             ) : (
               <div className="flex gap-2">
@@ -116,13 +184,6 @@ function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="grid grid-cols-2 gap-2">
-              <Link
-                to="/productos"
-                onClick={() => setIsMenuOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-center"
-              >
-                Productos
-              </Link>
               {categories.length > 0 && categories.map((category) => (
                 <Link
                   key={category.id}
@@ -137,6 +198,18 @@ function Navbar() {
           </div>
         )}
       </div>
+
+      {/* Cart Dropdown */}
+      <CartDropdown isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Profile Dropdown */}
+      {token && (
+        <ProfileDropdown
+          isOpen={isProfileOpen}
+          onClose={() => setIsProfileOpen(false)}
+          userEmail={getUserEmail()}
+        />
+      )}
     </nav>
   );
 }

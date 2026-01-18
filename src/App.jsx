@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import CategoryPage from './pages/CategoryPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/productos" element={<ProductsPage />} />
         <Route path="/producto/:id" element={<ProductDetailPage />} />
         <Route path="/categoria/:slug" element={<CategoryPage />} />
+        <Route path="/carrito" element={<CartPage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
       </Routes>
     </Router>
   );

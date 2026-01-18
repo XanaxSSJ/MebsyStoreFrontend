@@ -92,3 +92,34 @@ export const productAPI = {
     return allProducts.filter(product => product.categoryId === categoryId);
   },
 };
+
+export const orderAPI = {
+  create: async (orderData) => {
+    const response = await fetch(`${API_BASE_URL}/orders`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(orderData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Error al crear la orden' }));
+      throw new Error(error.error || error.message || 'Error al crear la orden');
+    }
+
+    return await response.json();
+  },
+
+  getMyOrders: async () => {
+    const response = await fetch(`${API_BASE_URL}/orders/me`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Error al obtener órdenes' }));
+      throw new Error(error.message || 'Error al obtener órdenes');
+    }
+
+    return await response.json();
+  },
+};
