@@ -53,10 +53,10 @@ function Navbar() {
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 w-full">
-      <div className="container">
+      <div className="w-full" style={{ padding: '0 var(--spacing-md)' }}>
         <div className="flex items-center justify-between" style={{ height: '4rem' }}>
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-gray-900">MebsyStore</span>
+            <span className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-family-display)', letterSpacing: '0.05em' }}>MebsyStore</span>
           </Link>
 
           <div className="hidden md:flex items-center flex-1 justify-center max-w-2xl mx-4 gap-6">
