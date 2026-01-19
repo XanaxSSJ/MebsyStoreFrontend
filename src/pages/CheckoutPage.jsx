@@ -17,6 +17,7 @@ function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [products, setProducts] = useState({}); // Mapa de productos por ID
   const [existingOrderId, setExistingOrderId] = useState(null); // ID de orden pendiente a reutilizar
+  const [existingOrder, setExistingOrder] = useState(null); // Orden pendiente a reutilizar
 
   useEffect(() => {
     const storedToken = getAuthToken();
@@ -89,13 +90,22 @@ function CheckoutPage() {
   const loadExistingOrder = async (orderId) => {
     try {
       const order = await orderAPI.getById(orderId);
+      // Guardar la orden en estado para reutilizarla
+      setExistingOrder(order);
       // Si la orden tiene dirección de envío, seleccionarla automáticamente
       if (order.shippingAddress?.id) {
         setSelectedAddressId(order.shippingAddress.id);
       }
+      // Verificar que la orden esté pendiente
+      if (order.status !== 'PENDING_PAYMENT') {
+        console.warn('La orden ya fue procesada, se creará una nueva');
+        setExistingOrder(null);
+        setExistingOrderId(null);
+      }
     } catch (err) {
       console.error('Error loading existing order:', err);
       // Si hay error, continuar con flujo normal
+      setExistingOrder(null);
       setExistingOrderId(null);
     }
   };
@@ -154,21 +164,12 @@ function CheckoutPage() {
       let order;
       
       // Si hay una orden existente pendiente, reutilizarla
-      if (existingOrderId) {
-        order = await orderAPI.getById(existingOrderId);
-        // Verificar que la orden esté pendiente
-        if (order.status !== 'PENDING_PAYMENT') {
-          alert('Esta orden ya ha sido procesada. Se creará una nueva orden.');
-          setExistingOrderId(null);
-          // Continuar con creación de nueva orden
-        } else {
-          // Usar la orden existente, no crear una nueva
-          console.log('Reutilizando orden existente:', existingOrderId);
-        }
-      }
-      
-      // Si no hay orden existente o la orden existente no es válida, crear una nueva
-      if (!order || order.status !== 'PENDING_PAYMENT') {
+      if (existingOrder && existingOrder.status === 'PENDING_PAYMENT') {
+        // Usar la orden existente, no crear una nueva
+        order = existingOrder;
+        console.log('Reutilizando orden existente:', existingOrder.id);
+      } else {
+        // Si no hay orden existente válida, crear una nueva
         const orderData = {
           items: cartItems.map((item) => ({
             productId: item.productId,
@@ -177,6 +178,7 @@ function CheckoutPage() {
           shippingAddressId: selectedAddressId,
         };
         order = await orderAPI.create(orderData);
+        console.log('Nueva orden creada:', order.id);
       }
       
       // Calcular costo de envío
