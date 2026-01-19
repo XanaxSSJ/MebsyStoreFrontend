@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { getAuthToken, userAPI } from '../services/api';
+import { getAuthToken, userAPI, locationAPI } from '../services/api';
 
 function ProfilePage() {
   const [token, setToken] = useState(null);
@@ -11,12 +11,18 @@ function ProfilePage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState({ street: '', city: '', postalCode: '', country: '' });
+  const [newAddress, setNewAddress] = useState({ street: '', department: '', province: '', district: '' });
   const [editingAddressIndex, setEditingAddressIndex] = useState(null);
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Estados para ubicaciones
+  const [departments, setDepartments] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
 
   useEffect(() => {
     const storedToken = getAuthToken();
@@ -24,8 +30,52 @@ function ProfilePage() {
     
     if (storedToken) {
       loadUserProfile();
+      loadDepartments();
     }
   }, []);
+
+  const loadDepartments = async () => {
+    try {
+      const depts = await locationAPI.getDepartments();
+      setDepartments(depts);
+    } catch (err) {
+      console.error('Error loading departments:', err);
+    }
+  };
+
+  const loadProvinces = async (department) => {
+    if (!department) {
+      setProvinces([]);
+      setDistricts([]);
+      return;
+    }
+    try {
+      setLoadingLocations(true);
+      const provs = await locationAPI.getProvinces(department);
+      setProvinces(provs);
+      setDistricts([]); // Reset districts when department changes
+    } catch (err) {
+      console.error('Error loading provinces:', err);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+
+  const loadDistricts = async (department, province) => {
+    if (!department || !province) {
+      setDistricts([]);
+      return;
+    }
+    try {
+      setLoadingLocations(true);
+      const dists = await locationAPI.getDistricts(department, province);
+      setDistricts(dists);
+    } catch (err) {
+      console.error('Error loading districts:', err);
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
 
   const loadUserProfile = async () => {
     try {
@@ -80,11 +130,13 @@ function ProfilePage() {
   };
 
   const handleAddAddress = async () => {
-    if (newAddress.street && newAddress.city && newAddress.postalCode && newAddress.country) {
+    if (newAddress.street && newAddress.department && newAddress.province && newAddress.district) {
       try {
         setSaving(true);
         await userAPI.createAddress(newAddress);
-        setNewAddress({ street: '', city: '', postalCode: '', country: '' });
+        setNewAddress({ street: '', department: '', province: '', district: '' });
+        setProvinces([]);
+        setDistricts([]);
         setIsAddingAddress(false);
         // Reload addresses
         await loadUserProfile();
@@ -94,6 +146,8 @@ function ProfilePage() {
       } finally {
         setSaving(false);
       }
+    } else {
+      alert('Por favor completa todos los campos de la dirección');
     }
   };
 
@@ -331,66 +385,88 @@ function ProfilePage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Nueva Dirección</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                       <div className="sm:col-span-2">
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">Calle y Número</label>
+                        <label className="text-sm font-medium text-gray-700 mb-1 block">Dirección exacta</label>
                         <input
                           type="text"
                           value={newAddress.street}
                           onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="Calle y número"
+                          placeholder="Ej: Av. Principal 123, Mz A Lt 5"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">Ciudad</label>
-                        <input
-                          type="text"
-                          value={newAddress.city}
-                          onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                        <label className="text-sm font-medium text-gray-700 mb-1 block">Departamento</label>
+                        <select
+                          value={newAddress.department}
+                          onChange={async (e) => {
+                            const dept = e.target.value;
+                            setNewAddress({ ...newAddress, department: dept, province: '', district: '' });
+                            await loadProvinces(dept);
+                          }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="Ciudad"
-                        />
+                        >
+                          <option value="">Selecciona un departamento</option>
+                          {departments.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">Código Postal</label>
-                        <input
-                          type="text"
-                          value={newAddress.postalCode}
-                          onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="Código postal"
-                        />
+                        <label className="text-sm font-medium text-gray-700 mb-1 block">Provincia</label>
+                        <select
+                          value={newAddress.province}
+                          onChange={async (e) => {
+                            const prov = e.target.value;
+                            setNewAddress({ ...newAddress, province: prov, district: '' });
+                            await loadDistricts(newAddress.department, prov);
+                          }}
+                          disabled={!newAddress.department || loadingLocations}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        >
+                          <option value="">Selecciona una provincia</option>
+                          {provinces.map(prov => (
+                            <option key={prov} value={prov}>{prov}</option>
+                          ))}
+                        </select>
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">País</label>
-                        <input
-                          type="text"
-                          value={newAddress.country}
-                          onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="País"
-                        />
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-1 block">Distrito</label>
+                        <select
+                          value={newAddress.district}
+                          onChange={(e) => setNewAddress({ ...newAddress, district: e.target.value })}
+                          disabled={!newAddress.province || loadingLocations}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        >
+                          <option value="">Selecciona un distrito</option>
+                          {districts.map(dist => (
+                            <option key={dist} value={dist}>{dist}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     <div className="flex gap-3">
                       <button
                         onClick={handleAddAddress}
-                        className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                        disabled={saving}
+                        className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
                         style={{ 
                           background: '#6d28d9'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.opacity = '0.9';
+                          if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '0.9';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.opacity = '1';
+                          if (!e.currentTarget.disabled) e.currentTarget.style.opacity = '1';
                         }}
                       >
-                        Guardar
+                        {saving ? 'Guardando...' : 'Guardar'}
                       </button>
                       <button
                         onClick={() => {
                           setIsAddingAddress(false);
-                          setNewAddress({ street: '', city: '', postalCode: '', country: '' });
+                          setNewAddress({ street: '', department: '', province: '', district: '' });
+                          setProvinces([]);
+                          setDistricts([]);
                         }}
                         className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
                         style={{ 
@@ -422,7 +498,7 @@ function ProfilePage() {
                           <div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                               <div className="sm:col-span-2">
-                                <label className="text-sm font-medium text-gray-700 mb-1 block">Calle y Número</label>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Dirección exacta</label>
                                 <input
                                   type="text"
                                   value={address.street}
@@ -435,43 +511,61 @@ function ProfilePage() {
                                 />
                               </div>
                               <div>
-                                <label className="text-sm font-medium text-gray-700 mb-1 block">Ciudad</label>
-                                <input
-                                  type="text"
-                                  value={address.city}
-                                  onChange={(e) => {
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Departamento</label>
+                                <select
+                                  value={address.department || ''}
+                                  onChange={async (e) => {
+                                    const dept = e.target.value;
                                     const updated = [...addresses];
-                                    updated[index] = { ...updated[index], city: e.target.value };
+                                    updated[index] = { ...updated[index], department: dept, province: '', district: '' };
                                     setAddresses(updated);
+                                    await loadProvinces(dept);
                                   }}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
+                                >
+                                  <option value="">Selecciona un departamento</option>
+                                  {departments.map(dept => (
+                                    <option key={dept} value={dept}>{dept}</option>
+                                  ))}
+                                </select>
                               </div>
                               <div>
-                                <label className="text-sm font-medium text-gray-700 mb-1 block">Código Postal</label>
-                                <input
-                                  type="text"
-                                  value={address.postalCode}
-                                  onChange={(e) => {
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Provincia</label>
+                                <select
+                                  value={address.province || ''}
+                                  onChange={async (e) => {
+                                    const prov = e.target.value;
                                     const updated = [...addresses];
-                                    updated[index] = { ...updated[index], postalCode: e.target.value };
+                                    updated[index] = { ...updated[index], province: prov, district: '' };
                                     setAddresses(updated);
+                                    await loadDistricts(address.department, prov);
                                   }}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
+                                  disabled={!address.department || loadingLocations}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                  <option value="">Selecciona una provincia</option>
+                                  {provinces.map(prov => (
+                                    <option key={prov} value={prov}>{prov}</option>
+                                  ))}
+                                </select>
                               </div>
-                              <div className="sm:col-span-2">
-                                <label className="text-sm font-medium text-gray-700 mb-1 block">País</label>
-                                <input
-                                  type="text"
-                                  value={address.country}
+                              <div>
+                                <label className="text-sm font-medium text-gray-700 mb-1 block">Distrito</label>
+                                <select
+                                  value={address.district || ''}
                                   onChange={(e) => {
                                     const updated = [...addresses];
-                                    updated[index] = { ...updated[index], country: e.target.value };
+                                    updated[index] = { ...updated[index], district: e.target.value };
                                     setAddresses(updated);
                                   }}
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                />
+                                  disabled={!address.province || loadingLocations}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                  <option value="">Selecciona un distrito</option>
+                                  {districts.map(dist => (
+                                    <option key={dist} value={dist}>{dist}</option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
                             <div className="flex gap-3">
@@ -516,12 +610,21 @@ function ProfilePage() {
                             <div className="flex-1">
                               <p className="text-base font-semibold text-gray-900 mb-1">{address.street}</p>
                               <p className="text-sm text-gray-600">
-                                {address.city}, {address.postalCode}, {address.country}
+                                {address.district}, {address.province}, {address.department}
                               </p>
                             </div>
                             <div className="flex gap-2">
                               <button
-                                onClick={() => setEditingAddressIndex(index)}
+                                onClick={async () => {
+                                  setEditingAddressIndex(index);
+                                  // Load provinces and districts for this address
+                                  if (address.department) {
+                                    await loadProvinces(address.department);
+                                    if (address.province) {
+                                      await loadDistricts(address.department, address.province);
+                                    }
+                                  }
+                                }}
                                 className="px-3 py-1.5 text-sm font-medium bg-white rounded-lg transition-colors"
                                 style={{ 
                                   border: '1px solid #8b5cf6',

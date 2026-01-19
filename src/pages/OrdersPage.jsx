@@ -208,7 +208,7 @@ function OrdersPage() {
                       <div className="pt-3 border-t border-gray-200">
                         <p className="text-sm font-medium text-gray-700 mb-1">Dirección de envío:</p>
                         <p className="text-sm text-gray-600">
-                          {order.shippingAddress.street}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                          {order.shippingAddress.street}, {order.shippingAddress.district}, {order.shippingAddress.province}, {order.shippingAddress.department}
                         </p>
                       </div>
                     )}
