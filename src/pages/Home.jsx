@@ -22,11 +22,15 @@ function Home() {
   const loadProducts = async () => {
     try {
       setLoading(true);
+      setError('');
       const data = await productAPI.getAll();
-      setProducts(data);
-      setFilteredProducts(data);
+      setProducts(data || []);
+      setFilteredProducts(data || []);
     } catch (err) {
-      setError(err.message || 'Error al cargar productos');
+      console.error('Error loading products:', err);
+      setError(err.message || 'Error al cargar productos. Verifica tu conexión.');
+      setProducts([]);
+      setFilteredProducts([]);
     } finally {
       setLoading(false);
     }

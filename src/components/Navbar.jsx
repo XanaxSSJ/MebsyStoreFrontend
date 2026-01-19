@@ -33,9 +33,10 @@ function Navbar() {
   const loadCategories = async () => {
     try {
       const data = await categoryAPI.getAll();
-      setCategories(data);
+      setCategories(data || []);
     } catch (err) {
       console.error('Error loading categories:', err);
+      setCategories([]); // Asegurar que siempre sea un array
     }
   };
 
