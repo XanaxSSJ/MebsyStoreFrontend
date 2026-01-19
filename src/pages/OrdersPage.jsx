@@ -22,14 +22,12 @@ function OrdersPage() {
       loadProducts();
     }
 
-    // Verificar parámetros de retorno de Mercado Pago
+    // Verificar parámetros de retorno de Mercado Pago y redirigir a página de resultado
     const status = searchParams.get('status');
-    if (status === 'success') {
-      alert('¡Pago realizado exitosamente!');
-    } else if (status === 'failure') {
-      alert('El pago fue rechazado. Por favor, intenta nuevamente.');
-    } else if (status === 'pending') {
-      alert('El pago está pendiente. Te notificaremos cuando se confirme.');
+    if (status) {
+      // Redirigir a la página de resultado del pago con todos los parámetros
+      const params = new URLSearchParams(searchParams);
+      navigate(`/pago-exitoso?${params.toString()}`, { replace: true });
     }
   }, [searchParams]);
 

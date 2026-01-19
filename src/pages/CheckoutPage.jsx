@@ -104,6 +104,14 @@ function CheckoutPage() {
     return getTotalPrice() + calculateShipping();
   };
 
+  /**
+   * Maneja el proceso de pago.
+   * 
+   * Este método:
+   * 1. Crea la orden en el backend
+   * 2. Crea la preferencia de pago en Mercado Pago
+   * 3. Redirige al usuario al checkout de Mercado Pago usando init_point
+   */
   const handlePay = async () => {
     if (cartItems.length === 0) {
       alert('Tu carrito está vacío');
@@ -135,13 +143,15 @@ function CheckoutPage() {
       // Crear preferencia de pago en Mercado Pago
       const preferenceResponse = await orderAPI.createPaymentPreference(order.id, shippingCost);
       
-      // Limpiar carrito
+      // Limpiar carrito antes de redirigir
       clearCart();
       
-      // Redirigir a Mercado Pago
+      // Redirigir a Mercado Pago usando init_point
+      // El init_point es la URL oficial de Mercado Pago para Checkout Pro
       window.location.href = preferenceResponse.initPoint;
       
     } catch (error) {
+      console.error('Error al procesar el pago:', error);
       alert(`Error al procesar el pago: ${error.message}`);
       setProcessing(false);
     }
@@ -288,7 +298,7 @@ function CheckoutPage() {
                   disabled={processing || !selectedAddressId}
                   className="w-full mt-6 py-3 px-6 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {processing ? 'Procesando...' : 'Pagar'}
+                  {processing ? 'Procesando...' : 'Ir a Pagar'}
                 </button>
               </div>
             </div>
