@@ -29,8 +29,15 @@ function PaymentSuccessPage() {
 
     // Obtener parámetros de la URL
     const status = searchParams.get('status');
+    const orderId = searchParams.get('orderId');
     const paymentId = searchParams.get('payment_id');
     const preferenceId = searchParams.get('preference_id');
+
+    // Si tenemos orderId, redirigir directamente al detalle de la orden
+    if (orderId && status) {
+      navigate(`/orden/${orderId}?status=${status}`, { replace: true });
+      return;
+    }
 
     // Validar que haya parámetros de retorno
     if (!status) {
@@ -49,7 +56,7 @@ function PaymentSuccessPage() {
     }
 
     // Log para debugging (remover en producción)
-    console.log('Payment return:', { status, paymentId, preferenceId });
+    console.log('Payment return:', { status, orderId, paymentId, preferenceId });
   }, [searchParams, navigate]);
 
   if (loading) {

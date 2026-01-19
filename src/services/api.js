@@ -123,6 +123,20 @@ export const orderAPI = {
     return await response.json();
   },
 
+  getById: async (orderId) => {
+    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Error al obtener la orden' }));
+      throw new Error(error.message || 'Error al obtener la orden');
+    }
+
+    return await response.json();
+  },
+
   createPaymentPreference: async (orderId, shippingCost) => {
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/payment/preference`, {
       method: 'POST',

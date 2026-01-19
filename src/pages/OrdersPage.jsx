@@ -29,7 +29,30 @@ function OrdersPage() {
       const params = new URLSearchParams(searchParams);
       navigate(`/pago-exitoso?${params.toString()}`, { replace: true });
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
+
+  // Recargar órdenes cuando la ventana vuelve a estar visible (útil cuando el usuario regresa de otra pestaña)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && token) {
+        loadOrders();
+      }
+    };
+
+    const handleFocus = () => {
+      if (token) {
+        loadOrders();
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [token]);
 
   const loadOrders = async () => {
     try {
@@ -178,9 +201,16 @@ function OrdersPage() {
                           <p className="text-sm text-gray-600 !m-0">Total</p>
                           <p className="text-base font-semibold text-gray-900">{formatPrice(order.total)}</p>
                         </div>
+                        <div>
+                          <p className="text-sm text-gray-600 !m-0">Status</p>
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
+                            {getStatusText(order.status)}
+                          </span>
+                        </div>
                       </div>
                     <div className="flex gap-3">
                       <button
+                        onClick={() => navigate(`/orden/${order.id}`)}
                         className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
                         style={{ 
                           border: '1px solid #8b5cf6',
@@ -282,7 +312,7 @@ function OrdersPage() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span className="text-sm text-gray-700">
-                                      Delivered on {formatDeliveryDate(order.createdAt)}
+                                      Pagado - Delivered on {formatDeliveryDate(order.createdAt)}
                                     </span>
                                   </>
                                 ) : order.status === 'CANCELLED' ? (
@@ -290,8 +320,8 @@ function OrdersPage() {
                                     <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
-                                    <span className="text-sm text-gray-700">
-                                      Cancelled
+                                    <span className="text-sm text-red-700 font-medium">
+                                      Cancelado / Pago Rechazado
                                     </span>
                                   </>
                                 ) : (
@@ -300,7 +330,7 @@ function OrdersPage() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span className="text-sm text-gray-700">
-                                      Pending delivery
+                                      Pago Pendiente
                                     </span>
                                   </>
                                 )}

@@ -8,6 +8,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import ProfilePage from './pages/ProfilePage';
 import OrdersPage from './pages/OrdersPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/carrito" element={<CartPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/ordenes" element={<OrdersPage />} />
+        <Route path="/orden/:orderId" element={<OrderDetailPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/pago-exitoso" element={<PaymentSuccessPage />} />
       </Routes>
