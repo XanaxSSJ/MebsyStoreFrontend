@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getAuthToken, userAPI, orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 function CheckoutPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
   const [token, setToken] = useState(null);
   const [userEmail, setUserEmail] = useState('');
@@ -15,6 +16,7 @@ function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [products, setProducts] = useState({}); // Mapa de productos por ID
+  const [existingOrderId, setExistingOrderId] = useState(null); // ID de orden pendiente a reutilizar
 
   useEffect(() => {
     const storedToken = getAuthToken();
@@ -25,11 +27,19 @@ function CheckoutPage() {
       return;
     }
 
+    // Verificar si hay un orderId en la URL (orden pendiente a reutilizar)
+    const orderIdParam = searchParams.get('orderId');
+    if (orderIdParam) {
+      setExistingOrderId(orderIdParam);
+      // Cargar la orden existente para obtener la dirección de envío
+      loadExistingOrder(orderIdParam);
+    }
+
     if (storedToken) {
       loadUserData();
       loadProducts();
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     // Si solo hay una dirección, seleccionarla automáticamente
@@ -76,6 +86,20 @@ function CheckoutPage() {
     }
   };
 
+  const loadExistingOrder = async (orderId) => {
+    try {
+      const order = await orderAPI.getById(orderId);
+      // Si la orden tiene dirección de envío, seleccionarla automáticamente
+      if (order.shippingAddress?.id) {
+        setSelectedAddressId(order.shippingAddress.id);
+      }
+    } catch (err) {
+      console.error('Error loading existing order:', err);
+      // Si hay error, continuar con flujo normal
+      setExistingOrderId(null);
+    }
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {
       style: 'currency',
@@ -108,9 +132,10 @@ function CheckoutPage() {
    * Maneja el proceso de pago.
    * 
    * Este método:
-   * 1. Crea la orden en el backend
-   * 2. Crea la preferencia de pago en Mercado Pago
-   * 3. Redirige al usuario al checkout de Mercado Pago usando init_point
+   * 1. Si hay una orden existente (orderId en URL), reutiliza esa orden
+   * 2. Si no, crea una nueva orden en el backend
+   * 3. Crea/actualiza la preferencia de pago en Mercado Pago
+   * 4. Redirige al usuario al checkout de Mercado Pago usando init_point
    */
   const handlePay = async () => {
     if (cartItems.length === 0) {
@@ -126,21 +151,38 @@ function CheckoutPage() {
     try {
       setProcessing(true);
       
-      // Crear la orden
-      const orderData = {
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-        shippingAddressId: selectedAddressId,
-      };
-
-      const order = await orderAPI.create(orderData);
+      let order;
+      
+      // Si hay una orden existente pendiente, reutilizarla
+      if (existingOrderId) {
+        order = await orderAPI.getById(existingOrderId);
+        // Verificar que la orden esté pendiente
+        if (order.status !== 'PENDING_PAYMENT') {
+          alert('Esta orden ya ha sido procesada. Se creará una nueva orden.');
+          setExistingOrderId(null);
+          // Continuar con creación de nueva orden
+        } else {
+          // Usar la orden existente, no crear una nueva
+          console.log('Reutilizando orden existente:', existingOrderId);
+        }
+      }
+      
+      // Si no hay orden existente o la orden existente no es válida, crear una nueva
+      if (!order || order.status !== 'PENDING_PAYMENT') {
+        const orderData = {
+          items: cartItems.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+          })),
+          shippingAddressId: selectedAddressId,
+        };
+        order = await orderAPI.create(orderData);
+      }
       
       // Calcular costo de envío
       const shippingCost = calculateShipping();
       
-      // Crear preferencia de pago en Mercado Pago
+      // Crear/actualizar preferencia de pago en Mercado Pago
       const preferenceResponse = await orderAPI.createPaymentPreference(order.id, shippingCost);
       
       // Limpiar carrito antes de redirigir

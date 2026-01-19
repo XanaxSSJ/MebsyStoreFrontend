@@ -8,7 +8,7 @@ function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addToCart } = useCart();
+  const { addToCart, clearCart } = useCart();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState({});
@@ -86,6 +86,24 @@ function OrderDetailPage() {
       }
     });
     navigate('/checkout');
+  };
+
+  const handleCompletePayment = () => {
+    // Limpiar carrito primero para evitar duplicados
+    clearCart();
+    
+    // Agregar productos de la orden pendiente al carrito
+    order.items.forEach((item) => {
+      const product = products[item.productId];
+      if (product) {
+        for (let i = 0; i < item.quantity; i++) {
+          addToCart(product);
+        }
+      }
+    });
+    
+    // Navegar a checkout con el orderId para reutilizar la orden existente
+    navigate(`/checkout?orderId=${order.id}`);
   };
 
   const getStatusDisplay = () => {
@@ -358,7 +376,7 @@ function OrderDetailPage() {
             <div className="flex justify-center mt-6 pt-6 border-t border-gray-300">
               {order.status === 'PENDING_PAYMENT' && (
                 <button
-                  onClick={() => handleBuyAgain(order.items)}
+                  onClick={handleCompletePayment}
                   className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Completar Pago
