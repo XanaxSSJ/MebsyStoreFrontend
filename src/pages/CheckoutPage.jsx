@@ -117,6 +117,8 @@ function CheckoutPage() {
 
     try {
       setProcessing(true);
+      
+      // Crear la orden
       const orderData = {
         items: cartItems.map((item) => ({
           productId: item.productId,
@@ -127,12 +129,20 @@ function CheckoutPage() {
 
       const order = await orderAPI.create(orderData);
       
+      // Calcular costo de envío
+      const shippingCost = calculateShipping();
+      
+      // Crear preferencia de pago en Mercado Pago
+      const preferenceResponse = await orderAPI.createPaymentPreference(order.id, shippingCost);
+      
+      // Limpiar carrito
       clearCart();
-      alert(`Orden creada exitosamente! ID: ${order.id}`);
-      navigate('/ordenes');
+      
+      // Redirigir a Mercado Pago
+      window.location.href = preferenceResponse.initPoint;
+      
     } catch (error) {
-      alert(`Error al crear la orden: ${error.message}`);
-    } finally {
+      alert(`Error al procesar el pago: ${error.message}`);
       setProcessing(false);
     }
   };

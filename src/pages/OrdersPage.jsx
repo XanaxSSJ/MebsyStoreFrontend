@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getAuthToken, orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 function OrdersPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
   const [token, setToken] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -20,7 +21,17 @@ function OrdersPage() {
       loadOrders();
       loadProducts();
     }
-  }, []);
+
+    // Verificar parámetros de retorno de Mercado Pago
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      alert('¡Pago realizado exitosamente!');
+    } else if (status === 'failure') {
+      alert('El pago fue rechazado. Por favor, intenta nuevamente.');
+    } else if (status === 'pending') {
+      alert('El pago está pendiente. Te notificaremos cuando se confirme.');
+    }
+  }, [searchParams]);
 
   const loadOrders = async () => {
     try {
