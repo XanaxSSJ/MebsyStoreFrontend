@@ -358,7 +358,7 @@ function OrderDetailPage() {
             <div className="flex justify-center mt-6 pt-6 border-t border-gray-300">
               {order.status === 'PENDING_PAYMENT' && (
                 <button
-                  onClick={() => navigate('/checkout')}
+                  onClick={() => handleBuyAgain(order.items)}
                   className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Completar Pago
