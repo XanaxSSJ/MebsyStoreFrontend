@@ -31,38 +31,14 @@ function OrdersPage() {
     }
   }, [searchParams, navigate]);
 
-  // Recargar órdenes cuando la ventana vuelve a estar visible (útil cuando el usuario regresa de otra pestaña)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && token) {
-        loadOrders();
-      }
-    };
-
-    const handleFocus = () => {
-      if (token) {
-        loadOrders();
-      }
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [token]);
-
   const loadOrders = async () => {
     try {
       setLoading(true);
       const data = await orderAPI.getMyOrders();
-      // Ordenar órdenes: más recientes primero
       const sortedOrders = [...data].sort((a, b) => {
         const dateA = new Date(a.createdAt);
         const dateB = new Date(b.createdAt);
-        return dateB - dateA; // Más recientes primero
+        return dateB - dateA; 
       });
       setOrders(sortedOrders);
     } catch (err) {
@@ -167,9 +143,9 @@ function OrdersPage() {
       <main className="flex-1 w-full flex justify-center">
         <div className="w-full max-w-6xl" style={{ padding: 'var(--spacing-2xl) var(--spacing-md)' }}>
           <div className="mb-8">
-            <h1 className="mb-2">Order history</h1>
+            <h1 className="mb-2">Historial de Pedidos</h1>
             <p className="text-gray-600" style={{ fontSize: '0.95rem' }}>
-              Check the status of recent orders, manage returns, and discover similar products.
+            Consulta el estado de tus pedidos recientes.
             </p>
           </div>
 
@@ -186,26 +162,20 @@ function OrdersPage() {
               {orders.map((order) => (
                 <div key={order.id} className="bg-gray-50 rounded-lg" style={{ padding: '20px' }}>
                   {/* Resumen de la orden */}
-                  <div className="flex flex-col gap-4 mb-4 border-b border-gray-300 pb-4">
+                  <div className="flex flex-col gap-4 mb-4 border-b border-gray-300">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-10">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10">
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Order number</p>
+                          <p className="text-sm text-gray-600 !m-0">Número de Pedido</p>
                           <p className="text-base font-semibold text-gray-900">{order.id.slice(0, 8)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Date placed</p>
+                          <p className="text-sm text-gray-600 !m-0">Fecha de Pedido</p>
                           <p className="text-base font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Total</p>
+                          <p className="text-sm text-gray-600 !m-0">Total a Pagar</p>
                           <p className="text-base font-semibold text-gray-900">{formatPrice(order.total)}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 !m-0">Status</p>
-                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                            {getStatusText(order.status)}
-                          </span>
                         </div>
                       </div>
                     <div className="flex gap-3">
@@ -225,32 +195,8 @@ function OrdersPage() {
                       >
                         View Order
                       </button>
-                      <button
-                        className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
-                        style={{ 
-                          border: '1px solid #8b5cf6',
-                          color: '#8b5cf6'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f3f4f6';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                      >
-                        View Invoice
-                      </button>
                     </div>
                     </div>
-                    {/* Dirección de envío */}
-                    {order.shippingAddress && (
-                      <div className="pt-3 border-t border-gray-200">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Dirección de envío:</p>
-                        <p className="text-sm text-gray-600">
-                          {order.shippingAddress.street}, {order.shippingAddress.district}, {order.shippingAddress.province}, {order.shippingAddress.department}
-                        </p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Lista de productos */}
@@ -312,7 +258,7 @@ function OrdersPage() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span className="text-sm text-gray-700">
-                                      Pagado - Delivered on {formatDeliveryDate(order.createdAt)}
+                                      Pagado - Entregado el {formatDeliveryDate(order.createdAt)}
                                     </span>
                                   </>
                                 ) : order.status === 'CANCELLED' ? (
@@ -330,7 +276,7 @@ function OrdersPage() {
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span className="text-sm text-gray-700">
-                                      Pago Pendiente
+                                      Pago Pendiente de confirmación
                                     </span>
                                   </>
                                 )}

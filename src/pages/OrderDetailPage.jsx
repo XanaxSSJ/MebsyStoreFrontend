@@ -85,7 +85,7 @@ function OrderDetailPage() {
         }
       }
     });
-    navigate('/carrito');
+    navigate('/checkout');
   };
 
   const getStatusDisplay = () => {
@@ -208,7 +208,6 @@ function OrderDetailPage() {
                 {paymentStatus === 'success' && 'Tu pago ha sido procesado correctamente.'}
                 {paymentStatus === 'pending' && 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
                 {paymentStatus === 'failure' && 'No pudimos procesar tu pago. Por favor, intenta nuevamente.'}
-                {!paymentStatus && `Estado de la orden: ${order.status}`}
               </p>
             </div>
           </div>
@@ -356,7 +355,7 @@ function OrderDetailPage() {
             </div>
 
             {/* Botones de acción principales */}
-            <div className="flex gap-3 mt-6 pt-6 border-t border-gray-300">
+            <div className="flex justify-center mt-6 pt-6 border-t border-gray-300">
               {order.status === 'PENDING_PAYMENT' && (
                 <button
                   onClick={() => navigate('/checkout')}
@@ -365,12 +364,14 @@ function OrderDetailPage() {
                   Completar Pago
                 </button>
               )}
-              <button
-                onClick={() => handleBuyAgain(order.items)}
-                className="px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
-              >
-                Comprar Todo Nuevamente
-              </button>
+              {order.status !== 'PENDING_PAYMENT' && (
+                <button
+                  onClick={() => handleBuyAgain(order.items)}
+                  className="px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+                >
+                  Comprar Todo Nuevamente
+                </button>
+              )}
             </div>
           </div>
         </div>
