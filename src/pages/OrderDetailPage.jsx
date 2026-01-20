@@ -101,16 +101,28 @@ function OrderDetailPage() {
   };
 
   const getStatusDisplay = () => {
-    // Priorizar el estado del pago de Mercado Pago si está disponible
-    if (paymentStatus === 'success' || order?.status === 'PAID') {
+    // Priorizar el estado de la orden sobre el paymentStatus de Mercado Pago
+    if (order?.status === 'SHIPPED') {
       return {
-        text: 'Pago Exitoso',
+        text: 'Orden Enviada',
         color: 'green',
         bgColor: 'bg-green-100',
         textColor: 'text-green-700',
         icon: (
           <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        ),
+      };
+    } else if (paymentStatus === 'success' || order?.status === 'PAID') {
+      return {
+        text: 'Pago Exitoso',
+        color: 'blue',
+        bgColor: 'bg-blue-100',
+        textColor: 'text-blue-700',
+        icon: (
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         ),
       };
@@ -214,9 +226,13 @@ function OrderDetailPage() {
             <div>
               <h2 className="text-xl font-bold mb-1">{statusDisplay.text}</h2>
               <p className="text-sm opacity-90">
-                {paymentStatus === 'success' && 'Tu pago ha sido procesado correctamente.'}
-                {paymentStatus === 'pending' && 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
-                {paymentStatus === 'failure' && 'No pudimos procesar tu pago. Por favor, intenta nuevamente.'}
+                {order?.status === 'SHIPPED' && `Tu orden fue enviada el ${formatDeliveryDate(order.updatedAt || order.createdAt)}. Deberías recibirla pronto.`}
+                {order?.status === 'PAID' && 'Tu pago ha sido procesado correctamente. Tu orden está en preparación y será enviada pronto.'}
+                {order?.status === 'PENDING_PAYMENT' && 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
+                {order?.status === 'CANCELLED' && 'No pudimos procesar tu pago. Por favor, intenta nuevamente.'}
+                {!order?.status && paymentStatus === 'success' && 'Tu pago ha sido procesado correctamente.'}
+                {!order?.status && paymentStatus === 'pending' && 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
+                {!order?.status && paymentStatus === 'failure' && 'No pudimos procesar tu pago. Por favor, intenta nuevamente.'}
               </p>
             </div>
           </div>
