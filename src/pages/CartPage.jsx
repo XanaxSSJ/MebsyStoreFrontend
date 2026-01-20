@@ -175,7 +175,7 @@ function CartPage() {
                   background: 'linear-gradient(to right, #a855f7, #7c3aed)',
                 }}
               >
-                {token ? 'Checkout' : 'Iniciar Sesión para Comprar'}
+                Checkout
               </button>
 
               <button

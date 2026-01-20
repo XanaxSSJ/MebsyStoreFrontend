@@ -194,9 +194,8 @@ function CheckoutPage() {
     }
   };
 
-  if (!token) {
-    return null; // Will redirect to login
-  }
+  // La autenticación se verifica automáticamente mediante cookies HttpOnly
+  // Si no hay cookie válida, el backend devolverá 401 y se redirigirá al login
 
   if (loading) {
     return (

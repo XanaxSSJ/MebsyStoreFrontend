@@ -121,14 +121,15 @@ function OrdersPage() {
     }
   };
 
-  if (!token) {
+  // La autenticación se verifica automáticamente mediante cookies HttpOnly
+  // Si no hay cookie válida, el backend devolverá 401 y se redirigirá al login
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Navbar />
         <div className="flex-1 flex items-center justify-center container section-sm">
           <div className="text-center">
-            <h1 className="mb-md">Acceso Denegado</h1>
-            <p className="text-secondary">Debes iniciar sesión para ver tus órdenes</p>
+            <p className="text-secondary">Cargando órdenes...</p>
           </div>
         </div>
       </div>
