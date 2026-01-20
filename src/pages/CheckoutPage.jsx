@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAuthToken, userAPI, orderAPI, productAPI } from '../services/api';
+import { userAPI, orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
-  const [token, setToken] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
@@ -20,14 +19,6 @@ function CheckoutPage() {
   const [existingOrder, setExistingOrder] = useState(null); // Orden pendiente a reutilizar
 
   useEffect(() => {
-    const storedToken = getAuthToken();
-    setToken(storedToken);
-    
-    if (!storedToken) {
-      navigate('/login');
-      return;
-    }
-
     // Verificar si hay un orderId en la URL (orden pendiente a reutilizar)
     const orderIdParam = searchParams.get('orderId');
     if (orderIdParam) {
@@ -36,10 +27,8 @@ function CheckoutPage() {
       loadExistingOrder(orderIdParam);
     }
 
-    if (storedToken) {
-      loadUserData();
-      loadProducts();
-    }
+    loadUserData();
+    loadProducts();
   }, [searchParams]);
 
   useEffect(() => {
@@ -52,12 +41,16 @@ function CheckoutPage() {
   const loadUserData = async () => {
     try {
       setLoading(true);
-      // Extract email from token
+      // Obtener email del perfil del usuario
       try {
-        const payload = JSON.parse(atob(getAuthToken().split('.')[1]));
-        setUserEmail(payload.sub || '');
+        const profile = await userAPI.getProfile();
+        setUserEmail(profile.email || '');
       } catch (err) {
-        console.error('Error parsing token:', err);
+        if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+          navigate('/login');
+          return;
+        }
+        console.error('Error loading user profile:', err);
       }
 
       // Load addresses

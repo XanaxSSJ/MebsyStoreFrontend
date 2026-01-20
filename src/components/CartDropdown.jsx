@@ -1,13 +1,12 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { getAuthToken } from '../services/api';
 
 function CartDropdown({ isOpen, onClose }) {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice } = useCart();
-  const token = getAuthToken();
+  // Ya no necesitamos verificar token - las cookies se envían automáticamente
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -33,13 +32,6 @@ function CartDropdown({ isOpen, onClose }) {
   };
 
   const handleCheckout = () => {
-    if (!token) {
-      alert('Debes iniciar sesión para realizar una compra');
-      onClose();
-      navigate('/login');
-      return;
-    }
-
     if (cartItems.length === 0) {
       return;
     }

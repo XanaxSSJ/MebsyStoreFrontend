@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAuthToken, categoryAPI } from '../services/api';
+import { authAPI, categoryAPI, userAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
 import CartDropdown from './CartDropdown';
@@ -8,7 +8,8 @@ import ProfileDropdown from './ProfileDropdown';
 
 function Navbar() {
   const { searchQuery, setSearchQuery } = useSearch();
-  const [token, setToken] = useState(() => getAuthToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -17,18 +18,36 @@ function Navbar() {
   const { getTotalItems } = useCart();
 
   useEffect(() => {
-    const checkToken = () => {
-      const currentToken = getAuthToken();
-      setToken(currentToken);
-    };
-
-    checkToken();
-    const interval = setInterval(checkToken, 1000);
-    
+    checkAuth();
     loadCategories();
+    
+    // Verificar autenticación periódicamente (cada 30 segundos)
+    const interval = setInterval(checkAuth, 30000);
     
     return () => clearInterval(interval);
   }, []);
+
+  const checkAuth = async () => {
+    try {
+      const authenticated = await authAPI.checkAuth();
+      setIsAuthenticated(authenticated);
+      
+      // Si está autenticado, obtener el email del perfil
+      if (authenticated) {
+        try {
+          const profile = await userAPI.getProfile();
+          setUserEmail(profile.email || null);
+        } catch {
+          setUserEmail(null);
+        }
+      } else {
+        setUserEmail(null);
+      }
+    } catch {
+      setIsAuthenticated(false);
+      setUserEmail(null);
+    }
+  };
 
   const loadCategories = async () => {
     try {
@@ -37,18 +56,6 @@ function Navbar() {
     } catch (err) {
       console.error('Error loading categories:', err);
       setCategories([]); // Asegurar que siempre sea un array
-    }
-  };
-
-  // Extract user email from token (simple implementation)
-  const getUserEmail = () => {
-    try {
-      const token = getAuthToken();
-      if (!token) return null;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub || null;
-    } catch {
-      return null;
     }
   };
 
@@ -120,7 +127,7 @@ function Navbar() {
             </button>
 
             {/* User Profile or Auth Buttons */}
-            {token ? (
+            {isAuthenticated ? (
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -204,11 +211,11 @@ function Navbar() {
       <CartDropdown isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       {/* Profile Dropdown */}
-      {token && (
+      {isAuthenticated && (
         <ProfileDropdown
           isOpen={isProfileOpen}
           onClose={() => setIsProfileOpen(false)}
-          userEmail={getUserEmail()}
+          userEmail={userEmail}
         />
       )}
     </nav>

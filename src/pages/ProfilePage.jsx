@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { getAuthToken, userAPI, locationAPI } from '../services/api';
+import { userAPI, locationAPI } from '../services/api';
 
 function ProfilePage() {
-  const [token, setToken] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -25,13 +24,8 @@ function ProfilePage() {
   const [loadingLocations, setLoadingLocations] = useState(false);
 
   useEffect(() => {
-    const storedToken = getAuthToken();
-    setToken(storedToken);
-    
-    if (storedToken) {
-      loadUserProfile();
-      loadDepartments();
-    }
+    loadUserProfile();
+    loadDepartments();
   }, []);
 
   const loadDepartments = async () => {
@@ -80,17 +74,11 @@ function ProfilePage() {
   const loadUserProfile = async () => {
     try {
       setLoading(true);
-      // Extract email from token
-      try {
-        const payload = JSON.parse(atob(getAuthToken().split('.')[1]));
-        setUserEmail(payload.sub || '');
-      } catch (err) {
-        console.error('Error parsing token:', err);
-      }
-
+      
       // Load user profile from backend
       const profile = await userAPI.getProfile();
       if (profile) {
+        setUserEmail(profile.email || '');
         setFirstName(profile.firstName || '');
         setLastName(profile.lastName || '');
         setPhone(profile.phone || '');

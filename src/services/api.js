@@ -1,12 +1,25 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://mebsystore.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+/**
+ * Configuración base para todas las peticiones fetch.
+ * Incluye credentials: 'include' para enviar cookies HttpOnly automáticamente.
+ */
+const defaultFetchOptions = {
+  credentials: 'include', // CRÍTICO: incluir cookies en todas las peticiones
+  headers: {
+    'Content-Type': 'application/json',
+  },
+};
 
 export const authAPI = {
+  /**
+   * Inicia sesión y establece cookie HttpOnly con JWT.
+   * El token también se devuelve en el body para compatibilidad temporal.
+   */
   login: async (email, password) => {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      ...defaultFetchOptions,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ email, password }),
     });
 
@@ -18,12 +31,13 @@ export const authAPI = {
     return await response.json();
   },
 
+  /**
+   * Registra un nuevo usuario.
+   */
   register: async (email, password) => {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      ...defaultFetchOptions,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ email, password }),
     });
 
@@ -34,31 +48,53 @@ export const authAPI = {
 
     return await response.json();
   },
+
+  /**
+   * Cierra sesión eliminando la cookie HttpOnly.
+   */
+  logout: async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      ...defaultFetchOptions,
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al cerrar sesión');
+    }
+  },
+
+  /**
+   * Verifica si el usuario está autenticado haciendo una petición ligera.
+   * Útil para verificar el estado de autenticación sin leer la cookie.
+   */
+  checkAuth: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
+        ...defaultFetchOptions,
+        method: 'GET',
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
 };
 
-export const setAuthToken = (token) => {
-  if (token) {
-    localStorage.setItem('token', token);
-  } else {
-    localStorage.removeItem('token');
-  }
-};
-
-export const getAuthToken = () => {
-  return localStorage.getItem('token');
-};
-
+/**
+ * Headers para peticiones autenticadas.
+ * Ya no incluye Authorization header - las cookies se envían automáticamente.
+ */
 export const getAuthHeaders = () => {
-  const token = getAuthToken();
   return {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    // El token JWT se envía automáticamente en la cookie HttpOnly
   };
 };
 
 export const categoryAPI = {
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/categories`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -75,6 +111,7 @@ export const categoryAPI = {
 export const productAPI = {
   getAll: async () => {
     const response = await fetch(`${API_BASE_URL}/products`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -96,6 +133,7 @@ export const productAPI = {
 export const orderAPI = {
   create: async (orderData) => {
     const response = await fetch(`${API_BASE_URL}/orders`, {
+      ...defaultFetchOptions,
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(orderData),
@@ -111,6 +149,7 @@ export const orderAPI = {
 
   getMyOrders: async () => {
     const response = await fetch(`${API_BASE_URL}/orders/me`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -125,6 +164,7 @@ export const orderAPI = {
 
   getById: async (orderId) => {
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -139,6 +179,7 @@ export const orderAPI = {
 
   createPaymentPreference: async (orderId, shippingCost) => {
     const response = await fetch(`${API_BASE_URL}/orders/${orderId}/payment/preference`, {
+      ...defaultFetchOptions,
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -160,6 +201,7 @@ export const orderAPI = {
 export const userAPI = {
   getProfile: async () => {
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -174,6 +216,7 @@ export const userAPI = {
 
   updateProfile: async (profileData) => {
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
+      ...defaultFetchOptions,
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(profileData),
@@ -189,6 +232,7 @@ export const userAPI = {
 
   getAddresses: async () => {
     const response = await fetch(`${API_BASE_URL}/user/addresses`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -203,6 +247,7 @@ export const userAPI = {
 
   createAddress: async (addressData) => {
     const response = await fetch(`${API_BASE_URL}/user/addresses`, {
+      ...defaultFetchOptions,
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(addressData),
@@ -218,6 +263,7 @@ export const userAPI = {
 
   updateAddress: async (addressId, addressData) => {
     const response = await fetch(`${API_BASE_URL}/user/addresses/${addressId}`, {
+      ...defaultFetchOptions,
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(addressData),
@@ -233,6 +279,7 @@ export const userAPI = {
 
   deleteAddress: async (addressId) => {
     const response = await fetch(`${API_BASE_URL}/user/addresses/${addressId}`, {
+      ...defaultFetchOptions,
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
@@ -247,6 +294,7 @@ export const userAPI = {
 export const locationAPI = {
   getDepartments: async () => {
     const response = await fetch(`${API_BASE_URL}/user/locations/departments`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -261,6 +309,7 @@ export const locationAPI = {
 
   getProvinces: async (department) => {
     const response = await fetch(`${API_BASE_URL}/user/locations/provinces?department=${encodeURIComponent(department)}`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });
@@ -275,6 +324,7 @@ export const locationAPI = {
 
   getDistricts: async (department, province) => {
     const response = await fetch(`${API_BASE_URL}/user/locations/districts?department=${encodeURIComponent(department)}&province=${encodeURIComponent(province)}`, {
+      ...defaultFetchOptions,
       method: 'GET',
       headers: getAuthHeaders(),
     });

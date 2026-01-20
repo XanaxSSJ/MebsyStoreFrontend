@@ -1,10 +1,11 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { setAuthToken } from '../services/api';
+import { authAPI } from '../services/api';
 
 function ProfileDropdown({ isOpen, onClose, userEmail }) {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,10 +23,20 @@ function ProfileDropdown({ isOpen, onClose, userEmail }) {
     };
   }, [isOpen, onClose]);
 
-  const handleLogout = () => {
-    setAuthToken(null);
-    onClose();
-    navigate('/login');
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await authAPI.logout();
+      onClose();
+      navigate('/login');
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+      // Aún así redirigir al login
+      onClose();
+      navigate('/login');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -75,10 +86,11 @@ function ProfileDropdown({ isOpen, onClose, userEmail }) {
           
           <button
             onClick={handleLogout}
-            className="text-left py-3 text-base text-red-600 hover:bg-red-50 transition-colors font-medium whitespace-nowrap block w-full"
+            disabled={loggingOut}
+            className="text-left py-3 text-base text-red-600 hover:bg-red-50 transition-colors font-medium whitespace-nowrap block w-full disabled:opacity-50"
             style={{ letterSpacing: '0.01em', paddingLeft: '20px', paddingRight: '20px' }}
           >
-            Cerrar Sesión
+            {loggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión'}
           </button>
         </div>
       </div>

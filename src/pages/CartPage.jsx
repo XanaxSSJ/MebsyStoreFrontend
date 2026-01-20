@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import { orderAPI, getAuthToken } from '../services/api';
+import { orderAPI } from '../services/api';
 
 function CartPage() {
   const navigate = useNavigate();
   const { cartItems, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
-  const token = getAuthToken();
+  // Ya no necesitamos verificar token - las cookies se envían automáticamente
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {
@@ -15,11 +15,6 @@ function CartPage() {
   };
 
   const handleCheckout = async () => {
-    if (!token) {
-      alert('Debes iniciar sesión para realizar una compra');
-      navigate('/login');
-      return;
-    }
 
     if (cartItems.length === 0) {
       alert('El carrito está vacío');

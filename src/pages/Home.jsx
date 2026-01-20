@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
 import { useSearch } from '../contexts/SearchContext';
-import { getAuthToken, productAPI } from '../services/api';
+import { productAPI } from '../services/api';
 
 function Home() {
-  const [token, setToken] = useState(null);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,9 +12,6 @@ function Home() {
   const { searchQuery } = useSearch();
 
   useEffect(() => {
-    const storedToken = getAuthToken();
-    setToken(storedToken);
-    
     loadProducts();
   }, []);
 

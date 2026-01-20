@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAuthToken, orderAPI } from '../services/api';
+import { orderAPI } from '../services/api';
 
 /**
  * Página de éxito del pago.
@@ -21,12 +21,6 @@ function PaymentSuccessPage() {
   const [paymentStatus, setPaymentStatus] = useState(null);
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     // Obtener parámetros de la URL
     const status = searchParams.get('status');
     const orderId = searchParams.get('orderId');

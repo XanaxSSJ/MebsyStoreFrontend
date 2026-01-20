@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI, setAuthToken } from '../services/api';
+import { authAPI } from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -15,8 +15,8 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await authAPI.login(email, password);
-      setAuthToken(response.token);
+      // El token se establece automáticamente en una cookie HttpOnly
+      await authAPI.login(email, password);
       navigate('/');
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');

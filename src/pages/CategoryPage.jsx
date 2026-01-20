@@ -6,7 +6,7 @@ import ProductCard from '../components/ProductCard';
 
 function CategoryPage() {
   const { slug } = useParams();
-  const token = getAuthToken();
+  // Ya no necesitamos verificar token - las cookies se envían automáticamente
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

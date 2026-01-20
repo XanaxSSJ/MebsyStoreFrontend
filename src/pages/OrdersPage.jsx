@@ -1,26 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAuthToken, orderAPI, productAPI } from '../services/api';
+import { orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 function OrdersPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
-  const [token, setToken] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState({}); // Cache de productos por ID
 
   useEffect(() => {
-    const storedToken = getAuthToken();
-    setToken(storedToken);
-    
-    if (storedToken) {
-      loadOrders();
-      loadProducts();
-    }
+    loadOrders();
+    loadProducts();
 
     // Verificar parámetros de retorno de Mercado Pago y redirigir a página de resultado
     const status = searchParams.get('status');
@@ -43,6 +37,11 @@ function OrdersPage() {
       setOrders(sortedOrders);
     } catch (err) {
       console.error('Error loading orders:', err);
+      // Si es error 401, redirigir al login
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        navigate('/login');
+        return;
+      }
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAuthToken, orderAPI, productAPI } from '../services/api';
+import { orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 function OrderDetailPage() {
@@ -15,12 +15,6 @@ function OrderDetailPage() {
   const paymentStatus = searchParams.get('status'); // success, pending, failure
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     loadOrder();
     loadProducts();
   }, [orderId, navigate]);
@@ -154,9 +148,6 @@ function OrderDetailPage() {
     };
   };
 
-  if (!getAuthToken()) {
-    return null;
-  }
 
   if (loading) {
     return (
