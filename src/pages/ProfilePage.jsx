@@ -77,11 +77,22 @@ function ProfilePage() {
       
       // Load user profile from backend
       const profile = await userAPI.getProfile();
+      // El backend ahora siempre devuelve el email, incluso si el perfil no existe
       if (profile) {
-        setUserEmail(profile.email || '');
-        setFirstName(profile.firstName || '');
-        setLastName(profile.lastName || '');
-        setPhone(profile.phone || '');
+        // Siempre establecer el email si está presente
+        if (profile.email) {
+          setUserEmail(profile.email);
+        }
+        // Solo establecer otros campos si existen
+        if (profile.firstName !== undefined) {
+          setFirstName(profile.firstName || '');
+        }
+        if (profile.lastName !== undefined) {
+          setLastName(profile.lastName || '');
+        }
+        if (profile.phone !== undefined) {
+          setPhone(profile.phone || '');
+        }
       }
 
       // Load addresses from backend
@@ -89,7 +100,13 @@ function ProfilePage() {
       setAddresses(addressesData || []);
     } catch (err) {
       console.error('Error loading profile:', err);
-      // If profile doesn't exist yet, that's okay
+      // Si es error 401, redirigir al login
+      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        // Redirigir al login si no está autenticado
+        window.location.href = '/login';
+        return;
+      }
+      // Si profile no existe aún, eso está bien, pero el email debería venir
       if (err.message && !err.message.includes('404')) {
         console.error('Unexpected error:', err);
       }

@@ -10,6 +10,7 @@ function Navbar() {
   const { searchQuery, setSearchQuery } = useSearch();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Estado de carga inicial
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -36,7 +37,7 @@ function Navbar() {
       if (authenticated) {
         try {
           const profile = await userAPI.getProfile();
-          setUserEmail(profile.email || null);
+          setUserEmail(profile?.email || null);
         } catch {
           setUserEmail(null);
         }
@@ -46,6 +47,8 @@ function Navbar() {
     } catch {
       setIsAuthenticated(false);
       setUserEmail(null);
+    } finally {
+      setIsCheckingAuth(false); // Marcar como completado
     }
   };
 
@@ -127,7 +130,10 @@ function Navbar() {
             </button>
 
             {/* User Profile or Auth Buttons */}
-            {isAuthenticated ? (
+            {isCheckingAuth ? (
+              // Mostrar placeholder mientras se verifica autenticación
+              <div className="w-10 h-10"></div>
+            ) : isAuthenticated ? (
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
