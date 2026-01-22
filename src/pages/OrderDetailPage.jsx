@@ -200,32 +200,32 @@ function OrderDetailPage() {
       <Navbar />
 
       <main className="flex-1 w-full flex justify-center">
-        <div className="w-full max-w-4xl" style={{ padding: 'var(--spacing-2xl) var(--spacing-md)' }}>
+        <div className="w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
           {/* Header con botón de volver */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <button
               onClick={() => navigate('/ordenes')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4"
+              className="flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-gray-900 mb-3 sm:mb-4"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Volver a Órdenes
             </button>
-            <h1 className="mb-2">Detalle de Orden</h1>
-            <p className="text-gray-600" style={{ fontSize: '0.95rem' }}>
+            <h1 className="mb-2 text-2xl sm:text-3xl">Detalle de Orden</h1>
+            <p className="text-gray-600 text-sm sm:text-base">
               Información completa de tu pedido
             </p>
           </div>
 
           {/* Estado del pago */}
-          <div className={`${statusDisplay.bgColor} ${statusDisplay.textColor} rounded-lg p-6 mb-6 flex items-center gap-4`}>
+          <div className={`${statusDisplay.bgColor} ${statusDisplay.textColor} rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4`}>
             <div className="flex-shrink-0">
               {statusDisplay.icon}
             </div>
-            <div>
-              <h2 className="text-xl font-bold mb-1">{statusDisplay.text}</h2>
-              <p className="text-sm opacity-90">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold mb-1">{statusDisplay.text}</h2>
+              <p className="text-xs sm:text-sm opacity-90 leading-relaxed">
                 {order?.status === 'SHIPPED' && `Tu orden fue enviada el ${formatDeliveryDate(order.updatedAt || order.createdAt)}. Deberías recibirla pronto.`}
                 {order?.status === 'PAID' && 'Tu pago ha sido procesado correctamente. Tu orden está en preparación y será enviada pronto.'}
                 {order?.status === 'PENDING_PAYMENT' && 'Tu pago está siendo procesado. Te notificaremos cuando se confirme.'}
@@ -238,51 +238,51 @@ function OrderDetailPage() {
           </div>
 
           {/* Información de la orden */}
-          <div className="bg-gray-50 rounded-lg" style={{ padding: '24px' }}>
+          <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
             {/* Resumen de la orden */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 pb-6 border-b border-gray-300">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-300">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Número de Orden</p>
-                <p className="text-base font-semibold text-gray-900">{order.id}</p>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Número de Orden</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-900 break-all">{order.id}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Fecha de Pedido</p>
-                <p className="text-base font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Fecha de Pedido</p>
+                <p className="text-sm sm:text-base font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-1">Total</p>
-                <p className="text-lg font-bold text-gray-900">{formatPrice(order.total)}</p>
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">Total</p>
+                <p className="text-base sm:text-lg font-bold text-gray-900">{formatPrice(order.total)}</p>
               </div>
             </div>
 
             {/* Dirección de envío */}
             {order.shippingAddress && (
-              <div className="mb-6 pb-6 border-b border-gray-300">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Dirección de Envío</h3>
-                <p className="text-gray-700">
+              <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-300">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">Dirección de Envío</h3>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
                   {order.shippingAddress.street}, {order.shippingAddress.district}, {order.shippingAddress.province}, {order.shippingAddress.department}
                 </p>
               </div>
             )}
 
             {/* Lista de productos */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Productos</h3>
-              <div className="space-y-6">
+            <div className="mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Productos</h3>
+              <div className="space-y-4 sm:space-y-6">
                 {order.items.map((item) => {
                   const product = products[item.productId];
                   return (
                     <div
                       key={item.id}
-                      className="flex gap-6 pb-6 border-b border-gray-200 last:border-0 last:pb-0"
+                      className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-200 last:border-0 last:pb-0"
                     >
                       {/* Imagen del producto */}
-                      <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
                         {product?.imageUrl ? (
                           <img src={product.imageUrl} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
                         ) : (
                           <svg
-                            className="w-12 h-12 text-gray-400"
+                            className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -299,19 +299,27 @@ function OrderDetailPage() {
 
                       {/* Información del producto */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-4 mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-2 text-lg">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg break-words">
                               {item.productName}
                             </h4>
-                            <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 leading-relaxed line-clamp-2">
                               {product?.description || 'Producto de calidad premium'}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                               Cantidad: {item.quantity}
                             </p>
+                            <p className="text-sm sm:text-base font-semibold text-gray-900 mt-2 sm:hidden">
+                              {formatPrice(item.unitPrice)}
+                              {item.quantity > 1 && (
+                                <span className="text-xs text-gray-500 ml-2">
+                                  Subtotal: {formatPrice(item.subtotal)}
+                                </span>
+                              )}
+                            </p>
                           </div>
-                          <div className="text-right flex-shrink-0">
+                          <div className="text-right flex-shrink-0 hidden sm:block">
                             <p className="text-lg font-semibold text-gray-900">
                               {formatPrice(item.unitPrice)}
                             </p>
@@ -324,10 +332,10 @@ function OrderDetailPage() {
                         </div>
 
                         {/* Botones de acción */}
-                        <div className="flex gap-3 mt-4">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-4">
                           <button
                             onClick={() => navigate(`/producto/${item.productId}`)}
-                            className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
+                            className="flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium bg-white rounded-lg transition-colors"
                             style={{
                               border: '1px solid #8b5cf6',
                               color: '#8b5cf6'
@@ -343,7 +351,7 @@ function OrderDetailPage() {
                           </button>
                           <button
                             onClick={() => handleBuyAgain([item])}
-                            className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
+                            className="flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium bg-white rounded-lg transition-colors"
                             style={{
                               border: '1px solid #8b5cf6',
                               color: '#8b5cf6'
@@ -366,25 +374,25 @@ function OrderDetailPage() {
             </div>
 
             {/* Resumen de totales */}
-            <div className="border-t border-gray-300 pt-6">
+            <div className="border-t border-gray-300 pt-4 sm:pt-6">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700">Subtotal:</span>
-                <span className="text-gray-900 font-semibold">
+                <span className="text-sm sm:text-base text-gray-700">Subtotal:</span>
+                <span className="text-sm sm:text-base text-gray-900 font-semibold">
                   {formatPrice(order.items.reduce((sum, item) => sum + item.subtotal, 0))}
                 </span>
               </div>
-              <div className="flex justify-between items-center text-xl font-bold pt-4 border-t border-gray-300">
+              <div className="flex justify-between items-center text-lg sm:text-xl font-bold pt-3 sm:pt-4 border-t border-gray-300">
                 <span>Total:</span>
                 <span>{formatPrice(order.total)}</span>
               </div>
             </div>
 
             {/* Botones de acción principales */}
-            <div className="flex justify-center mt-6 pt-6 border-t border-gray-300">
+            <div className="flex justify-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-300">
               {order.status === 'PENDING_PAYMENT' && (
                 <button
                   onClick={handleCompletePayment}
-                  className="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   Completar Pago
                 </button>
@@ -392,7 +400,7 @@ function OrderDetailPage() {
               {order.status !== 'PENDING_PAYMENT' && (
                 <button
                   onClick={() => handleBuyAgain(order.items)}
-                  className="px-6 py-3 bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+                  className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
                 >
                   Comprar Todo Nuevamente
                 </button>

@@ -184,7 +184,6 @@ h6 {
 }
 
 p {
-  margin-bottom: var(--spacing-md);
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
 }

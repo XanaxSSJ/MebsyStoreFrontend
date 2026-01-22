@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAuthToken, categoryAPI, productAPI } from '../services/api';
+import { categoryAPI, productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 
 function CategoryPage() {
   const { slug } = useParams();
-  // Ya no necesitamos verificar token - las cookies se envían automáticamente
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -16,10 +16,8 @@ function OrdersPage() {
     loadOrders();
     loadProducts();
 
-    // Verificar parámetros de retorno de Mercado Pago y redirigir a página de resultado
     const status = searchParams.get('status');
     if (status) {
-      // Redirigir a la página de resultado del pago con todos los parámetros
       const params = new URLSearchParams(searchParams);
       navigate(`/pago-exitoso?${params.toString()}`, { replace: true });
     }
@@ -37,7 +35,6 @@ function OrdersPage() {
       setOrders(sortedOrders);
     } catch (err) {
       console.error('Error loading orders:', err);
-      // Si es error 401, redirigir al login
       if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
         navigate('/login');
         return;
@@ -121,8 +118,6 @@ function OrdersPage() {
     }
   };
 
-  // La autenticación se verifica automáticamente mediante cookies HttpOnly
-  // Si no hay cookie válida, el backend devolverá 401 y se redirigirá al login
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
@@ -141,10 +136,10 @@ function OrdersPage() {
       <Navbar />
 
       <main className="flex-1 w-full flex justify-center">
-        <div className="w-full max-w-6xl" style={{ padding: 'var(--spacing-2xl) var(--spacing-md)' }}>
-          <div className="mb-8">
-            <h1 className="mb-2">Historial de Pedidos</h1>
-            <p className="text-gray-600" style={{ fontSize: '0.95rem' }}>
+        <div className="w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="mb-2 text-2xl sm:text-3xl">Historial de Pedidos</h1>
+            <p className="text-gray-600 text-sm sm:text-base">
             Consulta el estado de tus pedidos recientes.
             </p>
           </div>
@@ -160,59 +155,58 @@ function OrdersPage() {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => (
-                <div key={order.id} className="bg-gray-50 rounded-lg" style={{ padding: '20px' }}>
+                <div key={order.id} className="bg-gray-50 rounded-lg p-4 sm:p-5">
                   {/* Resumen de la orden */}
-                  <div className="flex flex-col gap-4 mb-4 border-b border-gray-300">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10">
+                  <div className="flex flex-col gap-4 mb-4 pb-4 border-b border-gray-300">
+                    <div className="flex flex-col gap-3 sm:gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-6">
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Número de Pedido</p>
-                          <p className="text-base font-semibold text-gray-900">{order.id.slice(0, 8)}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">Número de Pedido</p>
+                          <p className="text-sm sm:text-base font-semibold text-gray-900 break-all">{order.id.slice(0, 8)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Fecha de Pedido</p>
-                          <p className="text-base font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">Fecha de Pedido</p>
+                          <p className="text-sm sm:text-base font-semibold text-gray-900">{formatDate(order.createdAt)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 !m-0">Total a Pagar</p>
-                          <p className="text-base font-semibold text-gray-900">{formatPrice(order.total)}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">Total a Pagar</p>
+                          <p className="text-sm sm:text-base font-semibold text-gray-900">{formatPrice(order.total)}</p>
                         </div>
                       </div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => navigate(`/orden/${order.id}`)}
-                        className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
-                        style={{ 
-                          border: '1px solid #8b5cf6',
-                          color: '#8b5cf6'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#f3f4f6';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'white';
-                        }}
-                      >
-                        View Order
-                      </button>
-                    </div>
+                      <div className="flex">
+                        <button
+                          onClick={() => navigate(`/orden/${order.id}`)}
+                          className="w-full sm:w-auto px-4 py-2.5 text-sm font-medium bg-white rounded-lg transition-colors"
+                          style={{ 
+                            border: '1px solid #8b5cf6',
+                            color: '#8b5cf6'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f3f4f6';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'white';
+                          }}
+                        >
+                          Ver Orden
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Lista de productos */}
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {order.items.map((item, itemIndex) => {
                       const product = products[item.productId];
                       return (
                         <div 
                           key={item.id} 
-                          className="flex gap-6 pb-6 border-b border-gray-200 last:border-0 last:pb-0"
-                          style={{ paddingLeft: '0', paddingRight: '0' }}
+                          className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-200 last:border-0 last:pb-0"
                         >
                           {/* Imagen del producto */}
-                          <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
                             <svg
-                              className="w-12 h-12 text-gray-400"
+                              className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -228,16 +222,20 @@ function OrdersPage() {
 
                           {/* Información del producto */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-4 mb-3">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900 mb-2 text-lg">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-base sm:text-lg break-words">
                                   {item.productName}
                                 </h4>
-                                <p className="text-sm text-gray-600 mb-3 leading-relaxed !m-0">
+                                <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 leading-relaxed line-clamp-2">
                                   {product?.description || 'Producto de calidad premium'}
                                 </p>
+                                <p className="text-sm sm:text-base font-semibold text-gray-900 sm:hidden">
+                                  {formatPrice(item.unitPrice)}
+                                  {item.quantity > 1 && <span className="text-xs text-gray-500 ml-1">x{item.quantity}</span>}
+                                </p>
                               </div>
-                              <div className="text-right flex-shrink-0">
+                              <div className="text-right flex-shrink-0 hidden sm:block">
                                 <p className="text-lg font-semibold text-gray-900">
                                   {formatPrice(item.unitPrice)}
                                 </p>
@@ -249,83 +247,83 @@ function OrdersPage() {
                               </div>
                             </div>
 
-                            {/* Estado de entrega y botones en la misma línea */}
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex items-center gap-2">
+                            {/* Estado de entrega */}
+                            <div className="mb-3 sm:mb-0">
+                              <div className="flex items-start gap-2">
                                 {order.status === 'SHIPPED' ? (
                                   <>
-                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span className="text-sm text-gray-700">
+                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
                                       Enviada - Entregado el {formatDeliveryDate(order.updatedAt || order.createdAt)}
                                     </span>
                                   </>
                                 ) : order.status === 'PAID' ? (
                                   <>
-                                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span className="text-sm text-gray-700">
+                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
                                       Pagado - En espera de entrega
                                     </span>
                                   </>
                                 ) : order.status === 'CANCELLED' ? (
                                   <>
-                                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
-                                    <span className="text-sm text-red-700 font-medium">
+                                    <span className="text-xs sm:text-sm text-red-700 font-medium leading-tight">
                                       Cancelado / Pago Rechazado
                                     </span>
                                   </>
                                 ) : (
                                   <>
-                                    <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span className="text-sm text-gray-700">
+                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
                                       Pago Pendiente de confirmación
                                     </span>
                                   </>
                                 )}
                               </div>
+                            </div>
 
-                              {/* Botones de acción */}
-                              <div className="flex gap-3">
-                                <button
-                                  onClick={() => navigate(`/producto/${item.productId}`)}
-                                  className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
-                                  style={{ 
-                                    border: '1px solid #8b5cf6',
-                                    color: '#8b5cf6'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'white';
-                                  }}
-                                >
-                                  View product
-                                </button>
-                                <button
-                                  onClick={() => handleBuyAgain([item])}
-                                  className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
-                                  style={{ 
-                                    border: '1px solid #8b5cf6',
-                                    color: '#8b5cf6'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'white';
-                                  }}
-                                >
-                                  Buy again
-                                </button>
-                              </div>
+                            {/* Botones de acción */}
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-0">
+                              <button
+                                onClick={() => navigate(`/producto/${item.productId}`)}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium bg-white rounded-lg transition-colors"
+                                style={{ 
+                                  border: '1px solid #8b5cf6',
+                                  color: '#8b5cf6'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'white';
+                                }}
+                              >
+                                Ver Producto
+                              </button>
+                              <button
+                                onClick={() => handleBuyAgain([item])}
+                                className="flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium bg-white rounded-lg transition-colors"
+                                style={{ 
+                                  border: '1px solid #8b5cf6',
+                                  color: '#8b5cf6'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'white';
+                                }}
+                              >
+                                Comprar Nuevamente
+                              </button>
                             </div>
                           </div>
                         </div>
