@@ -10,7 +10,7 @@ function OrdersPage() {
   const { addToCart } = useCart();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState({}); // Cache de productos por ID
+  const [products, setProducts] = useState({});
 
   useEffect(() => {
     loadOrders();
@@ -159,7 +159,7 @@ function OrdersPage() {
                   {/* Resumen de la orden */}
                   <div className="flex flex-col gap-4 mb-4 pb-4 border-b border-gray-300">
                     <div className="flex flex-col gap-3 sm:gap-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 sm:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6">
                         <div>
                           <p className="text-xs sm:text-sm text-gray-600">Número de Pedido</p>
                           <p className="text-sm sm:text-base font-semibold text-gray-900 break-all">{order.id.slice(0, 8)}</p>
@@ -204,20 +204,28 @@ function OrdersPage() {
                           className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-4 sm:pb-6 border-b border-gray-200 last:border-0 last:pb-0"
                         >
                           {/* Imagen del producto */}
-                          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
-                            <svg
-                              className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 overflow-hidden">
+                            {product?.imageUrl ? (
+                              <img 
+                                src={product.imageUrl} 
+                                alt={item.productName}
+                                className="w-full h-full object-cover"
                               />
-                            </svg>
+                            ) : (
+                              <svg
+                                className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                />
+                              </svg>
+                            )}
                           </div>
 
                           {/* Información del producto */}

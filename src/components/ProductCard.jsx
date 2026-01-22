@@ -20,20 +20,28 @@ function ProductCard({ product }) {
   return (
     <div className="card card-sm transition-all hover:-translate-y-1 hover:shadow-lg border-2 border-gray-200 hover:border-gray-900 flex flex-col" style={{ padding: '14px' }}>
       {/* Foto */}
-      <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-        <svg
-          className="w-16 h-16 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+      <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+        {product.imageUrl ? (
+          <img 
+            src={product.imageUrl} 
+            alt={product.name}
+            className="w-full h-full object-cover"
           />
-        </svg>
+        ) : (
+          <svg
+            className="w-16 h-16 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
+        )}
       </div>
 
       {/* Nombre del producto */}
