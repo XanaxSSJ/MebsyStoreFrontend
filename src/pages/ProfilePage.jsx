@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { userAPI, locationAPI } from '../services/api';
+import { userAPI } from '../services/user';
+import { locationAPI } from '../services/locations';
 
 function ProfilePage() {
   const [userEmail, setUserEmail] = useState('');

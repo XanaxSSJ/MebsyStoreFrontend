@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { userAPI, orderAPI, productAPI } from '../services/api';
+import { userAPI } from '../services/user';
+import { orderAPI } from '../services/orders';
+import { productAPI } from '../services/products';
 import { useCart } from '../contexts/CartContext';
 
 function CheckoutPage() {

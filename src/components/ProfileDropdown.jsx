@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { authAPI } from '../services/auth';
 
 function ProfileDropdown({ isOpen, onClose, userEmail }) {
   const dropdownRef = useRef(null);

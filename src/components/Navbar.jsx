@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI, categoryAPI, userAPI } from '../services/api';
+import { authAPI } from '../services/auth';
+import { categoryAPI } from '../services/categories';
+import { userAPI } from '../services/user';
 import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
 import CartDropdown from './CartDropdown';

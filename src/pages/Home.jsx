@@ -3,7 +3,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import { useSearch } from '../contexts/SearchContext';
-import { productAPI } from '../services/api';
+import { productAPI } from '../services/products';
 
 function Home() {
   const [products, setProducts] = useState([]);

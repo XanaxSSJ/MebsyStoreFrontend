@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { productAPI } from '../services/api';
+import { productAPI } from '../services/products';
 import ProductCard from '../components/ProductCard';
 
 function ProductsPage() {
