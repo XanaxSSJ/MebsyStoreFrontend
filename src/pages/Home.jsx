@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import { useSearch } from '../contexts/SearchContext';
 import { productAPI } from '../services/api';
@@ -79,6 +80,8 @@ function Home() {
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

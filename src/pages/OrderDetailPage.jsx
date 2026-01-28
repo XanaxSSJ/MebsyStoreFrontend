@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
@@ -409,6 +410,8 @@ function OrderDetailPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

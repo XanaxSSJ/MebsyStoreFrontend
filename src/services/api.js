@@ -124,6 +124,11 @@ export const productAPI = {
     return await response.json();
   },
 
+  getById: async (productId) => {
+    const allProducts = await productAPI.getAll();
+    return allProducts.find((product) => String(product.id) === String(productId)) || null;
+  },
+
   getByCategory: async (categoryId) => {
     const allProducts = await productAPI.getAll();
     return allProducts.filter(product => product.categoryId === categoryId);

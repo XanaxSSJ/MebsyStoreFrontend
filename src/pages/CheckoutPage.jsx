@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { userAPI, orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
@@ -256,19 +257,28 @@ function CheckoutPage() {
                     >
                       {/* Imagen del Producto */}
                       <div className="w-24 h-24 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
-                        <svg
-                          className="w-10 h-10 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        {products[item.productId]?.imageUrl ? (
+                          <img
+                            src={products[item.productId].imageUrl}
+                            alt={item.productName}
+                            className="w-full h-full object-cover rounded-lg"
+                            loading="lazy"
                           />
-                        </svg>
+                        ) : (
+                          <svg
+                            className="w-10 h-10 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                            />
+                          </svg>
+                        )}
                       </div>
 
                       {/* Información del Producto */}
@@ -450,6 +460,8 @@ function CheckoutPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

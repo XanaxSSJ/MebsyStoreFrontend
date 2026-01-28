@@ -44,6 +44,7 @@ export function CartProvider({ children }) {
             productId: product.id,
             productName: product.name,
             price: product.price,
+            imageUrl: product.imageUrl || null,
             quantity: 1,
           },
         ];

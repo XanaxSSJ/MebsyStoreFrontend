@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { orderAPI, productAPI } from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
@@ -255,49 +256,6 @@ function OrdersPage() {
                               </div>
                             </div>
 
-                            {/* Estado de entrega */}
-                            <div className="mb-3 sm:mb-0">
-                              <div className="flex items-start gap-2">
-                                {order.status === 'SHIPPED' ? (
-                                  <>
-                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
-                                      Enviada - Entregado el {formatDeliveryDate(order.updatedAt || order.createdAt)}
-                                    </span>
-                                  </>
-                                ) : order.status === 'PAID' ? (
-                                  <>
-                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
-                                      Pagado - En espera de entrega
-                                    </span>
-                                  </>
-                                ) : order.status === 'CANCELLED' ? (
-                                  <>
-                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    <span className="text-xs sm:text-sm text-red-700 font-medium leading-tight">
-                                      Cancelado / Pago Rechazado
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span className="text-xs sm:text-sm text-gray-700 leading-tight">
-                                      Pago Pendiente de confirmación
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
                             {/* Botones de acción */}
                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-0">
                               <button
@@ -344,6 +302,8 @@ function OrdersPage() {
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

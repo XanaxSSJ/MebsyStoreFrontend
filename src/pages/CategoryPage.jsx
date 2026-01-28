@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { categoryAPI, productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 
@@ -119,6 +120,8 @@ function CategoryPage() {
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

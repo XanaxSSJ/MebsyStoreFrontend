@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { userAPI, locationAPI } from '../services/api';
 
 function ProfilePage() {
@@ -782,6 +783,8 @@ function ProfilePage() {
           )}
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
