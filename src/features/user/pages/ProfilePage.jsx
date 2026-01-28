@@ -8,17 +8,21 @@ import { useProfileQuery } from '../hooks/useProfileQuery';
 import { useAddressesQuery } from '../hooks/useAddressesQuery';
 import { useDepartmentsQuery, useProvincesQuery, useDistrictsQuery } from '../../locations/hooks/useLocationsQueries';
 
+const EMPTY_ARRAY = [];
+
 function ProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
   });
@@ -26,11 +30,9 @@ function ProfilePage() {
   // Address form state
   const [addressForm, setAddressForm] = useState({
     street: '',
-    number: '',
     department: '',
     province: '',
     district: '',
-    reference: '',
   });
   const [editingAddressId, setEditingAddressId] = useState(null);
 
@@ -42,26 +44,31 @@ function ProfilePage() {
   } = useProfileQuery();
 
   const {
-    data: addresses = [],
+    data: addressesData,
     isLoading: addressesLoading,
     error: addressesError,
     refetch: refetchAddresses,
   } = useAddressesQuery();
 
   const {
-    data: departments = [],
+    data: departmentsData,
     isLoading: departmentsLoading,
   } = useDepartmentsQuery();
 
   const {
-    data: provinces = [],
+    data: provincesData,
     isLoading: provincesLoading,
   } = useProvincesQuery(addressForm.department);
 
   const {
-    data: districts = [],
+    data: districtsData,
     isLoading: districtsLoading,
   } = useDistrictsQuery(addressForm.department, addressForm.province);
+
+  const addresses = addressesData ?? EMPTY_ARRAY;
+  const departments = departmentsData ?? EMPTY_ARRAY;
+  const provinces = provincesData ?? EMPTY_ARRAY;
+  const districts = districtsData ?? EMPTY_ARRAY;
 
   // Redirección a login si hay error 401
   useEffect(() => {
@@ -75,7 +82,8 @@ function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setProfileForm({
-        name: profile.name || '',
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
       });
@@ -89,22 +97,18 @@ function ProfilePage() {
       if (address) {
         setAddressForm({
           street: address.street || '',
-          number: address.number || '',
           department: address.department || '',
           province: address.province || '',
           district: address.district || '',
-          reference: address.reference || '',
         });
       }
     } else if (!editingAddressId) {
       // Reset form cuando no se está editando
       setAddressForm({
         street: '',
-        number: '',
         department: '',
         province: '',
         district: '',
-        reference: '',
       });
     }
   }, [editingAddressId, addresses]);
@@ -116,10 +120,15 @@ function ProfilePage() {
     setLoading(true);
 
     try {
-      await userAPI.updateProfile(profileForm);
+      await userAPI.updateProfile({
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        phone: profileForm.phone,
+      });
       setSuccess('Perfil actualizado correctamente');
       // Refetch profile data
       queryClient.invalidateQueries({ queryKey: ['user', 'profile'] });
+      setIsEditingProfile(false);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message || 'Error al actualizar perfil');
@@ -147,11 +156,9 @@ function ProfilePage() {
       setEditingAddressId(null);
       setAddressForm({
         street: '',
-        number: '',
         department: '',
         province: '',
         district: '',
-        reference: '',
       });
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
@@ -191,11 +198,9 @@ function ProfilePage() {
     setEditingAddressId(null);
     setAddressForm({
       street: '',
-      number: '',
       department: '',
       province: '',
       district: '',
-      reference: '',
     });
   };
 
@@ -264,66 +269,146 @@ function ProfilePage() {
                   <p className="text-gray-600">Cargando...</p>
                 </div>
               ) : (
-                <form onSubmit={handleProfileSubmit} className="space-y-6">
-                  <div className="form-group">
-                    <label htmlFor="name" className="form-label">
-                      Nombre Completo
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      value={profileForm.name}
-                      onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                      required
-                      className="form-input"
-                      placeholder="Tu nombre completo"
-                    />
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-0">Información Personal</h2>
+                    {!isEditingProfile ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingProfile(true)}
+                        className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
+                        style={{ border: '1px solid #8b5cf6', color: '#8b5cf6' }}
+                      >
+                        Editar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingProfile(false);
+                          setError('');
+                          setSuccess('');
+                          if (profile) {
+                            setProfileForm({
+                              firstName: profile.firstName || '',
+                              lastName: profile.lastName || '',
+                              email: profile.email || '',
+                              phone: profile.phone || '',
+                            });
+                          }
+                        }}
+                        className="px-4 py-2 text-sm font-medium bg-white rounded-lg transition-colors"
+                        style={{ border: '1px solid #8b5cf6', color: '#8b5cf6' }}
+                      >
+                        Cancelar
+                      </button>
+                    )}
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={profileForm.email}
-                      readOnly
-                      disabled
-                      className="form-input bg-gray-100 text-gray-500 cursor-not-allowed"
-                      placeholder="tu@email.com"
-                    />
-                  </div>
+                  {!isEditingProfile ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Nombre</p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {profileForm.firstName || 'No especificado'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Apellido</p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {profileForm.lastName || 'No especificado'}
+                        </p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <p className="text-sm text-gray-600 mb-1">Correo</p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {profileForm.email || 'No disponible'}
+                        </p>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <p className="text-sm text-gray-600 mb-1">Teléfono</p>
+                        <p className="text-base font-semibold text-gray-900">
+                          {profileForm.phone || 'No especificado'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleProfileSubmit} className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="form-group">
+                          <label htmlFor="firstName" className="form-label">
+                            Nombre
+                          </label>
+                          <input
+                            id="firstName"
+                            type="text"
+                            value={profileForm.firstName}
+                            onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                            className="form-input"
+                            placeholder="Ingresa tu nombre"
+                          />
+                        </div>
 
-                  <div className="form-group">
-                    <label htmlFor="phone" className="form-label">
-                      Teléfono
-                    </label>
-                    <input
-                      id="phone"
-                      type="tel"
-                      inputMode="numeric"
-                      pattern="\d*"
-                      maxLength={9}
-                      value={profileForm.phone}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                        setProfileForm({ ...profileForm, phone: digits });
-                      }}
-                      className="form-input"
-                      placeholder="987654321"
-                    />
-                  </div>
+                        <div className="form-group">
+                          <label htmlFor="lastName" className="form-label">
+                            Apellido
+                          </label>
+                          <input
+                            id="lastName"
+                            type="text"
+                            value={profileForm.lastName}
+                            onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                            className="form-input"
+                            placeholder="Ingresa tu apellido"
+                          />
+                        </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn btn-primary text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
-                    style={{ background: '#6d28d9' }}
-                  >
-                    {loading ? 'Guardando...' : 'Guardar Cambios'}
-                  </button>
-                </form>
+                        <div className="form-group sm:col-span-2">
+                          <label htmlFor="email" className="form-label">
+                            Email
+                          </label>
+                          <input
+                            id="email"
+                            type="email"
+                            value={profileForm.email}
+                            readOnly
+                            disabled
+                            className="form-input bg-gray-100 text-gray-500 cursor-not-allowed"
+                            placeholder="tu@email.com"
+                          />
+                        </div>
+
+                        <div className="form-group sm:col-span-2">
+                          <label htmlFor="phone" className="form-label">
+                            Teléfono
+                          </label>
+                          <input
+                            id="phone"
+                            type="tel"
+                            inputMode="numeric"
+                            maxLength={9}
+                            value={profileForm.phone}
+                            onChange={(e) => {
+                              const digits = e.target.value.replace(/\\D/g, '').slice(0, 9);
+                              setProfileForm({ ...profileForm, phone: digits });
+                            }}
+                            className="form-input"
+                            placeholder="987654321"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary text-sm font-medium text-white rounded-lg transition-colors disabled:opacity-50"
+                        style={{ background: '#6d28d9' }}
+                      >
+                        {loading ? 'Guardando...' : 'Guardar Cambios'}
+                      </button>
+                    </form>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -337,7 +422,7 @@ function ProfilePage() {
                   {editingAddressId ? 'Editar Dirección' : 'Nueva Dirección'}
                 </h2>
                 <form onSubmit={handleAddressSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="form-group">
                       <label htmlFor="street" className="form-label">
                         Calle
@@ -350,21 +435,6 @@ function ProfilePage() {
                         required
                         className="form-input"
                         placeholder="Nombre de la calle"
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="number" className="form-label">
-                        Número
-                      </label>
-                      <input
-                        id="number"
-                        type="text"
-                        value={addressForm.number}
-                        onChange={(e) => setAddressForm({ ...addressForm, number: e.target.value })}
-                        required
-                        className="form-input"
-                        placeholder="123"
                       />
                     </div>
                   </div>
@@ -447,20 +517,6 @@ function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="reference" className="form-label">
-                      Referencia (Opcional)
-                    </label>
-                    <textarea
-                      id="reference"
-                      value={addressForm.reference}
-                      onChange={(e) => setAddressForm({ ...addressForm, reference: e.target.value })}
-                      className="form-input"
-                      rows="3"
-                      placeholder="Cerca de..."
-                    />
-                  </div>
-
                   <div className="flex gap-4">
                     <button
                       type="submit"
@@ -503,17 +559,10 @@ function ProfilePage() {
                         className="border border-gray-200 rounded-lg p-4 flex justify-between items-start"
                       >
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">
-                            {address.street} {address.number}
-                          </p>
+                          <p className="font-medium text-gray-900">{address.street}</p>
                           <p className="text-sm text-gray-600">
                             {address.district}, {address.province}, {address.department}
                           </p>
-                          {address.reference && (
-                            <p className="text-sm text-gray-500 mt-1">
-                              Referencia: {address.reference}
-                            </p>
-                          )}
                         </div>
                         <div className="flex gap-2 ml-4">
                           <button

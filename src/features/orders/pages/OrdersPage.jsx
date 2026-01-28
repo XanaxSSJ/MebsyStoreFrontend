@@ -6,19 +6,21 @@ import { useCart } from '../../../contexts/CartContext';
 import { useProductsQuery } from '../../products/hooks/useProductsQuery';
 import { useMyOrdersQuery } from '../hooks/useMyOrdersQuery';
 
+const EMPTY_ARRAY = [];
+
 function OrdersPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
 
   const {
-    data: ordersData = [],
+    data: ordersData,
     isLoading: ordersLoading,
     error: ordersError,
   } = useMyOrdersQuery();
 
   const {
-    data: productsData = [],
+    data: productsData,
     isLoading: productsLoading,
   } = useProductsQuery();
 
@@ -38,20 +40,22 @@ function OrdersPage() {
     }
   }, [ordersError, navigate]);
 
+  const ordersDataSafe = ordersData ?? EMPTY_ARRAY;
+  const productsDataSafe = productsData ?? EMPTY_ARRAY;
+
   const loading = ordersLoading || productsLoading;
 
   const products = useMemo(() => {
     const map = {};
-    (productsData || []).forEach((product) => {
+    productsDataSafe.forEach((product) => {
       map[product.id] = product;
     });
     return map;
-  }, [productsData]);
+  }, [productsDataSafe]);
 
   const orders = useMemo(() => {
-    const list = ordersData || [];
-    return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [ordersData]);
+    return [...ordersDataSafe].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [ordersDataSafe]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {

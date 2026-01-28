@@ -3,12 +3,16 @@ import Footer from '../../../components/Footer';
 import ProductCard from '../../../components/ProductCard';
 import { useProductsQuery } from '../hooks/useProductsQuery';
 
+const EMPTY_ARRAY = [];
+
 function ProductsPage() {
   const {
-    data: products = [],
+    data: productsData,
     isLoading,
     error,
   } = useProductsQuery();
+
+  const products = productsData ?? EMPTY_ARRAY;
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

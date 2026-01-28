@@ -9,6 +9,8 @@ import { useAddressesQuery } from '../../user/hooks/useAddressesQuery';
 import { useProductsQuery } from '../../products/hooks/useProductsQuery';
 import { useOrderByIdQuery } from '../../orders/hooks/useOrderByIdQuery';
 
+const EMPTY_ARRAY = [];
+
 function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -27,13 +29,13 @@ function CheckoutPage() {
   } = useProfileQuery();
 
   const {
-    data: addressesData = [],
+    data: addressesData,
     isLoading: addressesLoading,
     error: addressesError,
   } = useAddressesQuery();
 
   const {
-    data: productsData = [],
+    data: productsData,
     isLoading: productsLoading,
   } = useProductsQuery();
 
@@ -44,14 +46,17 @@ function CheckoutPage() {
 
   const userEmail = profile?.email || '';
 
+  const addresses = addressesData ?? EMPTY_ARRAY;
+  const productsDataSafe = productsData ?? EMPTY_ARRAY;
+
   // Mapa de productos por ID para renderizar el resumen del carrito
   const products = useMemo(() => {
     const map = {};
-    (productsData || []).forEach((product) => {
+    productsDataSafe.forEach((product) => {
       map[product.id] = product;
     });
     return map;
-  }, [productsData]);
+  }, [productsDataSafe]);
 
   // Orden existente reutilizable (solo si está pendiente de pago)
   const existingOrder =
@@ -75,10 +80,10 @@ function CheckoutPage() {
 
   // Seleccionar dirección por defecto cuando llegan las direcciones
   useEffect(() => {
-    if (!selectedAddressId && addressesData && addressesData.length === 1) {
-      setSelectedAddressId(addressesData[0].id);
+    if (!selectedAddressId && addresses.length === 1) {
+      setSelectedAddressId(addresses[0].id);
     }
-  }, [addressesData, selectedAddressId]);
+  }, [addresses, selectedAddressId]);
 
   // Si la orden existente tiene dirección de envío, seleccionarla automáticamente
   useEffect(() => {

@@ -6,6 +6,8 @@ import { useCart } from '../../../contexts/CartContext';
 import { useProductsQuery } from '../../products/hooks/useProductsQuery';
 import { useOrderByIdQuery } from '../hooks/useOrderByIdQuery';
 
+const EMPTY_ARRAY = [];
+
 function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -20,19 +22,21 @@ function OrderDetailPage() {
   } = useOrderByIdQuery(orderId);
 
   const {
-    data: productsData = [],
+    data: productsData,
     isLoading: productsLoading,
   } = useProductsQuery();
 
   const loading = orderLoading || productsLoading;
 
+  const productsDataSafe = productsData ?? EMPTY_ARRAY;
+
   const products = useMemo(() => {
     const map = {};
-    (productsData || []).forEach((product) => {
+    productsDataSafe.forEach((product) => {
       map[product.id] = product;
     });
     return map;
-  }, [productsData]);
+  }, [productsDataSafe]);
 
   useEffect(() => {
     if (orderError) {

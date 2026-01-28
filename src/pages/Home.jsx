@@ -1,31 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import { useSearch } from '../contexts/SearchContext';
 import { useProductsQuery } from '../features/products/hooks/useProductsQuery';
 
+const EMPTY_PRODUCTS = [];
+
 function Home() {
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const { searchQuery } = useSearch();
   const {
-    data: products = [],
+    data: productsData,
     isLoading,
     error,
   } = useProductsQuery();
 
-  useEffect(() => {
-    if (!products) return;
+  const products = productsData ?? EMPTY_PRODUCTS;
 
-    if (searchQuery.trim() === '') {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-      setFilteredProducts(filtered);
-    }
-  }, [searchQuery, products]);
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (query === '') return products;
+    return products.filter((product) => product.name.toLowerCase().includes(query));
+  }, [products, searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
