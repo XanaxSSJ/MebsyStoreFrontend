@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { orderAPI } from '../services/orders';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
 
 /**
  * Página de éxito del pago.
@@ -195,3 +194,4 @@ function PaymentSuccessPage() {
 }
 
 export default PaymentSuccessPage;
+

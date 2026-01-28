@@ -1,9 +1,11 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext } from 'react';
+import { useSearchStore } from '../store/search.store';
 
 const SearchContext = createContext(null);
 
 export function SearchProvider({ children }) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchQuery = useSearchStore((state) => state.searchQuery);
+  const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
 
   return (
     <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>

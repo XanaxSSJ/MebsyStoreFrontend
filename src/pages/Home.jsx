@@ -3,42 +3,25 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
 import { useSearch } from '../contexts/SearchContext';
-import { productAPI } from '../services/products';
+import { useProductsQuery } from '../features/products/hooks/useProductsQuery';
 
 function Home() {
-  const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const { searchQuery } = useSearch();
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useProductsQuery();
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    if (!products) return;
 
-  const loadProducts = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await productAPI.getAll();
-      setProducts(data || []);
-      setFilteredProducts(data || []);
-    } catch (err) {
-      console.error('Error loading products:', err);
-      setError(err.message || 'Error al cargar productos. Verifica tu conexión.');
-      setProducts([]);
-      setFilteredProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredProducts(products);
     } else {
       const filtered = products.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredProducts(filtered);
     }
@@ -57,7 +40,7 @@ function Home() {
             </p>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-3xl">
               <p className="text-secondary">Cargando productos...</p>
             </div>

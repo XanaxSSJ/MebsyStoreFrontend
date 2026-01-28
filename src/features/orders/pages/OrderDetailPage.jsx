@@ -1,51 +1,45 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { orderAPI } from '../services/orders';
-import { productAPI } from '../services/products';
-import { useCart } from '../contexts/CartContext';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { useCart } from '../../../contexts/CartContext';
+import { useProductsQuery } from '../../products/hooks/useProductsQuery';
+import { useOrderByIdQuery } from '../hooks/useOrderByIdQuery';
 
 function OrderDetailPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart, clearCart } = useCart();
-  const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState({});
   const paymentStatus = searchParams.get('status'); // success, pending, failure
 
+  const {
+    data: order,
+    isLoading: orderLoading,
+    error: orderError,
+  } = useOrderByIdQuery(orderId);
+
+  const {
+    data: productsData = [],
+    isLoading: productsLoading,
+  } = useProductsQuery();
+
+  const loading = orderLoading || productsLoading;
+
+  const products = useMemo(() => {
+    const map = {};
+    (productsData || []).forEach((product) => {
+      map[product.id] = product;
+    });
+    return map;
+  }, [productsData]);
+
   useEffect(() => {
-    loadOrder();
-    loadProducts();
-  }, [orderId, navigate]);
-
-  const loadOrder = async () => {
-    try {
-      setLoading(true);
-      const orderData = await orderAPI.getById(orderId);
-      setOrder(orderData);
-    } catch (err) {
-      console.error('Error loading order:', err);
+    if (orderError) {
+      console.error('Error loading order:', orderError);
       navigate('/ordenes');
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const loadProducts = async () => {
-    try {
-      const allProducts = await productAPI.getAll();
-      const productsMap = {};
-      allProducts.forEach(product => {
-        productsMap[product.id] = product;
-      });
-      setProducts(productsMap);
-    } catch (err) {
-      console.error('Error loading products:', err);
-    }
-  };
+  }, [orderError, navigate]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {
@@ -270,7 +264,7 @@ function OrderDetailPage() {
             {/* Lista de productos */}
             <div className="mb-4 sm:mb-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Productos</h3>
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-4 sm:space-y-6 mb-6">
                 {order.items.map((item) => {
                   const product = products[item.productId];
                   return (
@@ -373,40 +367,40 @@ function OrderDetailPage() {
                   );
                 })}
               </div>
-            </div>
 
-            {/* Resumen de totales */}
-            <div className="border-t border-gray-300 pt-4 sm:pt-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm sm:text-base text-gray-700">Subtotal:</span>
-                <span className="text-sm sm:text-base text-gray-900 font-semibold">
-                  {formatPrice(order.items.reduce((sum, item) => sum + item.subtotal, 0))}
-                </span>
+              {/* Resumen de totales */}
+              <div className="border-t border-gray-300 pt-4 sm:pt-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm sm:text-base text-gray-700">Subtotal:</span>
+                  <span className="text-sm sm:text-base text-gray-900 font-semibold">
+                    {formatPrice(order.items.reduce((sum, item) => sum + item.subtotal, 0))}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-lg sm:text-xl font-bold pt-3 sm:pt-4 border-t border-gray-300">
+                  <span>Total:</span>
+                  <span>{formatPrice(order.total)}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-lg sm:text-xl font-bold pt-3 sm:pt-4 border-t border-gray-300">
-                <span>Total:</span>
-                <span>{formatPrice(order.total)}</span>
-              </div>
-            </div>
 
-            {/* Botones de acción principales */}
-            <div className="flex justify-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-300">
-              {order.status === 'PENDING_PAYMENT' && (
-                <button
-                  onClick={handleCompletePayment}
-                  className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Completar Pago
-                </button>
-              )}
-              {order.status !== 'PENDING_PAYMENT' && (
-                <button
-                  onClick={() => handleBuyAgain(order.items)}
-                  className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
-                >
-                  Comprar Todo Nuevamente
-                </button>
-              )}
+              {/* Botones de acción principales */}
+              <div className="flex justify-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-300">
+                {order.status === 'PENDING_PAYMENT' && (
+                  <button
+                    onClick={handleCompletePayment}
+                    className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Completar Pago
+                  </button>
+                )}
+                {order.status !== 'PENDING_PAYMENT' && (
+                  <button
+                    onClick={() => handleBuyAgain(order.items)}
+                    className="w-full sm:w-auto px-6 py-3 text-sm sm:text-base bg-white border-2 border-purple-600 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+                  >
+                    Comprar Todo Nuevamente
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -418,3 +412,4 @@ function OrderDetailPage() {
 }
 
 export default OrderDetailPage;
+

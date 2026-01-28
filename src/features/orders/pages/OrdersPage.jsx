@@ -1,23 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { orderAPI } from '../services/orders';
-import { productAPI } from '../services/products';
-import { useCart } from '../contexts/CartContext';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { useCart } from '../../../contexts/CartContext';
+import { useProductsQuery } from '../../products/hooks/useProductsQuery';
+import { useMyOrdersQuery } from '../hooks/useMyOrdersQuery';
 
 function OrdersPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState({});
 
+  const {
+    data: ordersData = [],
+    isLoading: ordersLoading,
+    error: ordersError,
+  } = useMyOrdersQuery();
+
+  const {
+    data: productsData = [],
+    isLoading: productsLoading,
+  } = useProductsQuery();
+
+  // Redirección desde Mercado Pago a página de resultado
   useEffect(() => {
-    loadOrders();
-    loadProducts();
-
     const status = searchParams.get('status');
     if (status) {
       const params = new URLSearchParams(searchParams);
@@ -25,39 +31,27 @@ function OrdersPage() {
     }
   }, [searchParams, navigate]);
 
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      const data = await orderAPI.getMyOrders();
-      const sortedOrders = [...data].sort((a, b) => {
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return dateB - dateA; 
-      });
-      setOrders(sortedOrders);
-    } catch (err) {
-      console.error('Error loading orders:', err);
-      if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
-        navigate('/login');
-        return;
-      }
-    } finally {
-      setLoading(false);
+  // Manejo de 401 / no autenticado
+  useEffect(() => {
+    if (ordersError && (ordersError.message?.includes('401') || ordersError.message?.includes('Unauthorized'))) {
+      navigate('/login');
     }
-  };
+  }, [ordersError, navigate]);
 
-  const loadProducts = async () => {
-    try {
-      const allProducts = await productAPI.getAll();
-      const productsMap = {};
-      allProducts.forEach(product => {
-        productsMap[product.id] = product;
-      });
-      setProducts(productsMap);
-    } catch (err) {
-      console.error('Error loading products:', err);
-    }
-  };
+  const loading = ordersLoading || productsLoading;
+
+  const products = useMemo(() => {
+    const map = {};
+    (productsData || []).forEach((product) => {
+      map[product.id] = product;
+    });
+    return map;
+  }, [productsData]);
+
+  const orders = useMemo(() => {
+    const list = ordersData || [];
+    return [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [ordersData]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {
@@ -146,11 +140,7 @@ function OrdersPage() {
             </p>
           </div>
 
-          {loading ? (
-            <div className="text-center py-3xl">
-              <p className="text-secondary">Cargando órdenes...</p>
-            </div>
-          ) : orders.length === 0 ? (
+          {orders.length === 0 ? (
             <div className="bg-gray-50 rounded-lg text-center py-3xl">
               <p className="text-secondary">No tienes órdenes aún</p>
             </div>
@@ -310,3 +300,4 @@ function OrdersPage() {
 }
 
 export default OrdersPage;
+

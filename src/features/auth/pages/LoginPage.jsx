@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/auth';
+import { authAPI } from '../../../services/auth';
 
-function Login() {
+function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -96,4 +96,5 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginPage;
+

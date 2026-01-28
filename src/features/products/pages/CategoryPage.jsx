@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { categoryAPI } from '../services/categories';
-import { productAPI } from '../services/products';
-import ProductCard from '../components/ProductCard';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { categoryAPI } from '../../../services/categories';
+import { productAPI } from '../../../services/products';
+import ProductCard from '../../../components/ProductCard';
 
 function CategoryPage() {
   const { slug } = useParams();
@@ -128,3 +128,4 @@ function CategoryPage() {
 }
 
 export default CategoryPage;
+

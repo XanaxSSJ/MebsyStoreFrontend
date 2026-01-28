@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
-import { orderAPI } from '../services/orders';
+import { useCart } from '../../../contexts/CartContext';
+import { orderAPI } from '../../../services/orders';
 
 function CartPage() {
   const navigate = useNavigate();
@@ -97,7 +97,7 @@ function CartPage() {
                         <select
                           value={item.quantity}
                           onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                          className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
+                          className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:outline-nonefocus:ring-2 focus:ring-gray-900 focus:border-transparent cursor-pointer hover:border-gray-400 transition-colors"
                         >
                           {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
                             <option key={num} value={num}>
@@ -193,3 +193,4 @@ function CartPage() {
 }
 
 export default CartPage;
+

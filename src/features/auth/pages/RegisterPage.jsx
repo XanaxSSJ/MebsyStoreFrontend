@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/auth';
+import { authAPI } from '../../../services/auth';
 
-function Register() {
+function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -137,4 +137,5 @@ function Register() {
   );
 }
 
-export default Register;
+export default RegisterPage;
+

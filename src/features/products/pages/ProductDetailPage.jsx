@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { categoryAPI } from '../services/categories';
-import { productAPI } from '../services/products';
-import { useCart } from '../contexts/CartContext';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { categoryAPI } from '../../../services/categories';
+import { productAPI } from '../../../services/products';
+import { useCart } from '../../../contexts/CartContext';
 
 function ProductDetailPage() {
   const { id } = useParams();
@@ -267,3 +267,4 @@ function ProductDetailPage() {
 }
 
 export default ProductDetailPage;
+

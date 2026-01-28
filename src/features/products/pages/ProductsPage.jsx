@@ -1,29 +1,14 @@
-import { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { productAPI } from '../services/products';
-import ProductCard from '../components/ProductCard';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import ProductCard from '../../../components/ProductCard';
+import { useProductsQuery } from '../hooks/useProductsQuery';
 
 function ProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
-  const loadProducts = async () => {
-    try {
-      setLoading(true);
-      const data = await productAPI.getAll();
-      setProducts(data);
-    } catch (err) {
-      setError(err.message || 'Error al cargar productos');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useProductsQuery();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -37,7 +22,7 @@ function ProductsPage() {
           </p>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-3xl">
             <p className="text-secondary">Cargando productos...</p>
           </div>
@@ -89,3 +74,4 @@ function ProductsPage() {
 }
 
 export default ProductsPage;
+

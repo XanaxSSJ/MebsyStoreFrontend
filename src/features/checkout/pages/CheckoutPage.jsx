@@ -1,110 +1,91 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { userAPI } from '../services/user';
-import { orderAPI } from '../services/orders';
-import { productAPI } from '../services/products';
-import { useCart } from '../contexts/CartContext';
+import Navbar from '../../../components/Navbar';
+import Footer from '../../../components/Footer';
+import { orderAPI } from '../../../services/orders';
+import { useCart } from '../../../contexts/CartContext';
+import { useProfileQuery } from '../../user/hooks/useProfileQuery';
+import { useAddressesQuery } from '../../user/hooks/useAddressesQuery';
+import { useProductsQuery } from '../../products/hooks/useProductsQuery';
+import { useOrderByIdQuery } from '../../orders/hooks/useOrderByIdQuery';
 
 function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { cartItems, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
-  const [userEmail, setUserEmail] = useState('');
-  const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [deliveryMethod, setDeliveryMethod] = useState('estandar');
-  const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [products, setProducts] = useState({}); // Mapa de productos por ID
-  const [existingOrderId, setExistingOrderId] = useState(null); // ID de orden pendiente a reutilizar
-  const [existingOrder, setExistingOrder] = useState(null); // Orden pendiente a reutilizar
 
+  const orderIdParam = searchParams.get('orderId');
+
+  // Queries de usuario, direcciones, productos y orden existente
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useProfileQuery();
+
+  const {
+    data: addressesData = [],
+    isLoading: addressesLoading,
+    error: addressesError,
+  } = useAddressesQuery();
+
+  const {
+    data: productsData = [],
+    isLoading: productsLoading,
+  } = useProductsQuery();
+
+  const {
+    data: existingOrderData,
+    isLoading: existingOrderLoading,
+  } = useOrderByIdQuery(orderIdParam);
+
+  const userEmail = profile?.email || '';
+
+  // Mapa de productos por ID para renderizar el resumen del carrito
+  const products = useMemo(() => {
+    const map = {};
+    (productsData || []).forEach((product) => {
+      map[product.id] = product;
+    });
+    return map;
+  }, [productsData]);
+
+  // Orden existente reutilizable (solo si está pendiente de pago)
+  const existingOrder =
+    existingOrderData && existingOrderData.status === 'PENDING_PAYMENT'
+      ? existingOrderData
+      : null;
+
+  const loading =
+    profileLoading ||
+    addressesLoading ||
+    productsLoading ||
+    (orderIdParam && existingOrderLoading);
+
+  // Redirección a login si hay error 401 en perfil/direcciones
   useEffect(() => {
-    // Verificar si hay un orderId en la URL (orden pendiente a reutilizar)
-    const orderIdParam = searchParams.get('orderId');
-    if (orderIdParam) {
-      setExistingOrderId(orderIdParam);
-      // Cargar la orden existente para obtener la dirección de envío
-      loadExistingOrder(orderIdParam);
+    const authError = profileError || addressesError;
+    if (authError && (authError.message?.includes('401') || authError.message?.includes('Unauthorized'))) {
+      navigate('/login');
     }
+  }, [profileError, addressesError, navigate]);
 
-    loadUserData();
-    loadProducts();
-  }, [searchParams]);
-
+  // Seleccionar dirección por defecto cuando llegan las direcciones
   useEffect(() => {
-    // Si solo hay una dirección, seleccionarla automáticamente
-    if (addresses.length === 1 && !selectedAddressId) {
-      setSelectedAddressId(addresses[0].id);
+    if (!selectedAddressId && addressesData && addressesData.length === 1) {
+      setSelectedAddressId(addressesData[0].id);
     }
-  }, [addresses]);
+  }, [addressesData, selectedAddressId]);
 
-  const loadUserData = async () => {
-    try {
-      setLoading(true);
-      // Obtener email del perfil del usuario
-      try {
-        const profile = await userAPI.getProfile();
-        setUserEmail(profile.email || '');
-      } catch (err) {
-        if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
-          navigate('/login');
-          return;
-        }
-        console.error('Error loading user profile:', err);
-      }
-
-      // Load addresses
-      const addressesData = await userAPI.getAddresses().catch(() => []);
-      setAddresses(addressesData || []);
-      
-      if (addressesData && addressesData.length > 0) {
-        setSelectedAddressId(addressesData[0].id);
-      }
-    } catch (err) {
-      console.error('Error loading user data:', err);
-    } finally {
-      setLoading(false);
+  // Si la orden existente tiene dirección de envío, seleccionarla automáticamente
+  useEffect(() => {
+    if (existingOrder && existingOrder.shippingAddress?.id) {
+      setSelectedAddressId(existingOrder.shippingAddress.id);
     }
-  };
-
-  const loadProducts = async () => {
-    try {
-      const allProducts = await productAPI.getAll();
-      const productsMap = {};
-      allProducts.forEach(product => {
-        productsMap[product.id] = product;
-      });
-      setProducts(productsMap);
-    } catch (err) {
-      console.error('Error loading products:', err);
-    }
-  };
-
-  const loadExistingOrder = async (orderId) => {
-    try {
-      const order = await orderAPI.getById(orderId);
-      // Guardar la orden en estado para reutilizarla
-      setExistingOrder(order);
-      // Si la orden tiene dirección de envío, seleccionarla automáticamente
-      if (order.shippingAddress?.id) {
-        setSelectedAddressId(order.shippingAddress.id);
-      }
-      // Verificar que la orden esté pendiente
-      if (order.status !== 'PENDING_PAYMENT') {
-        console.warn('La orden ya fue procesada, se creará una nueva');
-        setExistingOrder(null);
-        setExistingOrderId(null);
-      }
-    } catch (err) {
-      console.error('Error loading existing order:', err);
-      // Si hay error, continuar con flujo normal
-      setExistingOrder(null);
-      setExistingOrderId(null);
-    }
-  };
+  }, [existingOrder]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-PE', {
@@ -160,8 +141,7 @@ function CheckoutPage() {
       let order;
       
       // Si hay una orden existente pendiente, reutilizarla
-      if (existingOrder && existingOrder.status === 'PENDING_PAYMENT') {
-        // Usar la orden existente, no crear una nueva
+      if (existingOrder) {
         order = existingOrder;
         console.log('Reutilizando orden existente:', existingOrder.id);
       } else {
@@ -371,7 +351,7 @@ function CheckoutPage() {
               <div className="bg-gray-50 rounded-lg" style={{ padding: '28px' }}>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Información de Envío</h2>
                 
-                {addresses.length === 0 ? (
+                {addressesData.length === 0 ? (
                   <div className="text-center py-4">
                     <p className="text-gray-600 mb-4">No tienes direcciones guardadas</p>
                     <button
@@ -383,7 +363,7 @@ function CheckoutPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {addresses.map((address) => (
+                    {addressesData.map((address) => (
                       <label
                         key={address.id}
                         className="flex items-start gap-3 p-4 rounded-lg cursor-pointer border-2 transition-colors"
@@ -469,3 +449,4 @@ function CheckoutPage() {
 }
 
 export default CheckoutPage;
+

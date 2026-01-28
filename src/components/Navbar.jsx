@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/auth';
 import { categoryAPI } from '../services/categories';
-import { userAPI } from '../services/user';
 import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
+import { useProfileQuery } from '../features/user/hooks/useProfileQuery';
+import { useAuthStatusQuery } from '../features/auth/hooks/useAuthStatusQuery';
 import CartDropdown from './CartDropdown';
 import ProfileDropdown from './ProfileDropdown';
 
@@ -12,7 +12,7 @@ function Navbar() {
   const { searchQuery, setSearchQuery } = useSearch();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // Estado de carga inicial
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -20,39 +20,34 @@ function Navbar() {
   const navigate = useNavigate();
   const { getTotalItems } = useCart();
 
-  useEffect(() => {
-    checkAuth();
-    loadCategories();
-    
-    // Verificar autenticación periódicamente (cada 30 segundos)
-    const interval = setInterval(checkAuth, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  const {
+    data: authStatus,
+    isLoading: authLoading,
+  } = useAuthStatusQuery();
 
-  const checkAuth = async () => {
-    try {
-      const authenticated = await authAPI.checkAuth();
-      setIsAuthenticated(authenticated);
-      
-      // Si está autenticado, obtener el email del perfil
-      if (authenticated) {
-        try {
-          const profile = await userAPI.getProfile();
-          setUserEmail(profile?.email || null);
-        } catch {
-          setUserEmail(null);
-        }
-      } else {
-        setUserEmail(null);
-      }
-    } catch {
-      setIsAuthenticated(false);
-      setUserEmail(null);
-    } finally {
-      setIsCheckingAuth(false); // Marcar como completado
+  const {
+    data: profile,
+  } = useProfileQuery();
+
+  useEffect(() => {
+    // Actualizar estado de autenticación según TanStack Query
+    if (authStatus !== undefined) {
+      setIsAuthenticated(Boolean(authStatus));
+      setIsCheckingAuth(false);
     }
-  };
+  }, [authStatus]);
+
+  useEffect(() => {
+    if (profile && authStatus) {
+      setUserEmail(profile.email || null);
+    } else if (!authStatus) {
+      setUserEmail(null);
+    }
+  }, [profile, authStatus]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   const loadCategories = async () => {
     try {
