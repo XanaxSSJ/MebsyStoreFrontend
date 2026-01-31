@@ -49,8 +49,6 @@ function PaymentSuccessPage() {
       console.log('Payment pending, waiting for webhook confirmation');
     }
 
-    // Log para debugging (remover en producción)
-    console.log('Payment return:', { status, orderId, paymentId, preferenceId });
   }, [searchParams, navigate]);
 
   if (loading) {
